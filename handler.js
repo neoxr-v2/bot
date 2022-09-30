@@ -30,7 +30,7 @@ module.exports = async (sock, m) => {
          try {
            if (cmd.owner && !isOwner) return sock.reply(m.chat, global.status.owner, m)	
            cmd.exec(m, {
-               client,
+               sock,
                args,
                text,
                isPrefix,
