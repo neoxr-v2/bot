@@ -77,7 +77,7 @@ const connect = async () => {
 
    sock.ev.on('messages.upsert', async msg => {
     	if (msg.type !== "notify") return
-        let m = serialize(JSON.parse(JSON.stringify(msg.messages[0])), sock)
+        let m = Serialize(JSON.parse(JSON.stringify(msg.messages[0])), sock)
         if (!m.message) return
         if (m.key && m.key.remoteJid === 'status@broadcast') return
         if (m.type === "protocolMessage" || m.type === "senderKeyDistributionMessage" || !msg.type || msg.type === "") return
