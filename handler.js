@@ -31,8 +31,8 @@ module.exports = async (sock, m) => {
          } catch (e) {
             console.error("[CMD ERROR] ", e);
          }
-      } catch (e) {
-         console.log("[CHATS ERROR] ", String(e))
       }
+   } catch (e) {
+      console.log("[CHATS ERROR] ", String(e))
    }
 }
