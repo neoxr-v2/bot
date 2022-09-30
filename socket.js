@@ -16,7 +16,7 @@ global.p = require('@discordjs/collection')
 p.commands = new p.Collection()
 p.prefix = '/'
 
-const readCommand = () => {
+const commands = () => {
    Scandir('./plugins').then(files => {
       files.filter(v => v.endsWith('.js')).map(file => {
          const command = require(file)
@@ -64,24 +64,24 @@ const connect = async () => {
       }
    }
 
-   await readCommand()
-   global.sock = Socket({
+   await commands()
+   global.client = Socket({
       logger,
       printQRInTerminal: true,
       auth: state,
       generateHighQualityLinkPreview: true
    })
 
-   sock.ev.on('messages.upsert', async msg => {
+   client.ev.on('messages.upsert', async msg => {
     	if (msg.type !== "notify") return
-        let m = Serialize(JSON.parse(JSON.stringify(msg.messages[0])), sock)
+        let m = Serialize(JSON.parse(JSON.stringify(msg.messages[0])), client)
         if (!m.message) return
         if (m.key && m.key.remoteJid === 'status@broadcast') return
         if (m.type === "protocolMessage" || m.type === "senderKeyDistributionMessage" || !msg.type || msg.type === "") return
-        require('./system/config'), require('./handler')(sock, m)
+        require('./system/config'), require('./handler')(client, m)
    })
 
-   sock.ev.on('connection.update', (update) => {
+   client.ev.on('connection.update', (update) => {
       const {
          connection,
          lastDisconnect,
@@ -93,8 +93,8 @@ const connect = async () => {
          })
       }
       if (connection === 'open') {
-     	global.db.creds = sock.authState.creds
-         console.log(colors.green(`Connected, you login as ${sock.user.name}`))
+     	global.db.creds = client.authState.creds
+         console.log(colors.green(`Connected, you login as ${client.user.name}`))
       }
       if (connection === 'close') {
          lastDisconnect.error.output.statusCode !== DisconnectReason.loggedOut ? connect() : console.log(colors.red(`Can't connect to Web Socket.`))
@@ -102,14 +102,14 @@ const connect = async () => {
    })
 
    // listen for when the auth credentials is updated
-   sock.ev.on('creds.update', saveState)
+   client.ev.on('creds.update', saveState)
    
    setInterval(async () => {
-      global.db.creds = sock.authState.creds
+      global.db.creds = client.authState.creds
       if (global.db) await props.save()
    }, 10_000)
 
-   return sock
+   return client
 }
 
 connect().catch(() => connect())
