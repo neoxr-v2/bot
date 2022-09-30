@@ -1,4 +1,4 @@
-module.exports = {
+exports.run = {
    name: 'ping',
    alias: ['p'],
    category: 'main',

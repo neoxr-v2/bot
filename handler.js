@@ -26,10 +26,10 @@ module.exports = async (sock, m) => {
          let clean = start.trim().split` `.slice(1)
          let text = clean.join` `
          let prefixes = global.db.setting.multiprefix ? global.db.setting.prefix : [global.db.setting.onlyprefix]
-         const cmd = global.p.commands.get(command) || global.p.commands.find((cmd) => cmd.alias && cmd.alias.includes(command))
+         const cmd = global.p.commands.get(command) || global.p.commands.find((cmd) => cmd.run.alias && cmd.run.alias.includes(command))
          try {
-           if (cmd.owner && !isOwner) return sock.reply(m.chat, global.status.owner, m)	
-           cmd.exec(m, {
+           if (cmd.run.owner && !isOwner) return sock.reply(m.chat, global.status.owner, m)	
+           cmd.run.exec(m, {
                sock,
                args,
                text,

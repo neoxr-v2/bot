@@ -1,4 +1,4 @@
-module.exports = {
+exports.run = {
    name: 'menu',
    alias: ['help', 'bot'],
    category: 'main',

@@ -9,7 +9,7 @@ const fs = require('fs'),
    })
 const { makeInMemoryStore, DisconnectReason, useSingleFileAuthState } = require('baileys')
 const { state,  saveState } = useSingleFileAuthState(path(__dirname, 'session.json'), logger)
-const { Socket, Serialize } = require('./system/extra')
+const { Socket, Serialize, Scandir } = require('./system/extra')
 global.Func = new (require('./system/function'))
 global.props = new(require('./system/dataset'))
 global.p = require('@discordjs/collection')
@@ -17,15 +17,12 @@ p.commands = new p.Collection()
 p.prefix = '/'
 
 const readCommand = () => {
-   let rootDir = path(__dirname, 'plugins')
-   let dir = fs.readdirSync(rootDir)
-   dir.forEach(async (res) => {
-      const commandFiles = fs.readdirSync(`${rootDir}/${res}`).filter((file) => file.endsWith('.js'))
-      for (const file of commandFiles) {
-         const command = require(`${rootDir}/${res}/${file}`)
-         p.commands.set(command.name, command)
-      }
-   })
+   Scandir('./plugins').then(files => {
+      files.filter(v => v.endsWith('.js')).map(file => {
+         const command = require(file)
+         p.commands.set(command.run.name, command)
+      })
+   }).catch(e => console.error(e))
    console.log('Command loaded!')
 }
 

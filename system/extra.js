@@ -1,3 +1,11 @@
+const fs = require('fs')
+const { writeFile } = require('fs/promises')
+const mime = require('mime-types')
+const path = require('path')
+const { promisify } = require('util')
+const { resolve } = require('path')
+const readdir = promisify(fs.readdir)
+const stat = promisify(fs.stat)
 const {
    default: makeWASocket,
    proto,
@@ -5,7 +13,6 @@ const {
    downloadContentFromMessage
 } = require('baileys')
 const Bluebird = require('bluebird')
-const fs = require('fs')
 
 const Socket = (...args) => {
    let sock = makeWASocket(...args)
@@ -172,5 +179,15 @@ const Serialize = (m, sock) => {
    return m
 }
 
+Scandir = async (dir) => {
+   let subdirs = await readdir(dir)
+   let files = await Promise.all(subdirs.map(async (subdir) => {
+      let res = resolve(dir, subdir)
+      return (await stat(res)).isDirectory() ? Scandir(res) : res
+   }))
+   return files.reduce((a, f) => a.concat(f), [])
+}
+
 exports.Socket = Socket
 exports.Serialize = Serialize
+exports.Scandir = Scandir
