@@ -24,6 +24,7 @@
       "cheerio":"~1.0.0-rc.5",
       "child_process":"~1.0.2",
       "colors":"1.4.0",
+      "bluebird": "^3.7.2",
       "dotenv": "^16.0.1",
       "express": "~4.16.4",
       "fs": "0.0.1-security",
@@ -51,7 +52,6 @@
    "devDependencies": {
       "@discordjs/collection": "^0.5.0",
       "@hapi/boom": "^9.1.4",
-      "bluebird": "^3.7.2",
       "jimp": "^0.16.1",
       "pino": "^7.6.5",
       "qrcode-terminal": "^0.12.0"
