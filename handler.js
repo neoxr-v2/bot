@@ -15,6 +15,7 @@ module.exports = async (sock, m) => {
          setting = global.db.setting
       sock.sendPresenceUpdate('available', m.chat)
       const body = typeof m.text == 'string' ? m.text : false
+      require('./system/exec')(sock, m, isOwner)
       const getPrefix = body ? body.charAt(0) : ''
       const myPrefix = (setting.multiprefix ? setting.prefix.includes(getPrefix) : setting.onlyprefix == getPrefix) ? getPrefix : undefined
       let isPrefix
