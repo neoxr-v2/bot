@@ -28,7 +28,17 @@ module.exports = async (sock, m) => {
          let prefixes = global.db.setting.multiprefix ? global.db.setting.prefix : [global.db.setting.onlyprefix]
          const cmd = global.p.commands.get(command) || global.p.commands.find((cmd) => cmd.alias && cmd.alias.includes(command))
          try {
-            cmd.exec(m, args, text, command, isPrefix);
+           if (cmd.owner && !isOwner) return sock.reply(m.chat, global.status.owner, m)	
+           cmd.exec(m, {
+               client,
+               args,
+               text,
+               isPrefix,
+               command,
+               participants,
+               blockList,
+               isOwner
+            })
          } catch (e) {
             console.error("[CMD ERROR] ", e);
          }

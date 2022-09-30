@@ -1,14 +1,15 @@
 module.exports = {
-   name: 'menu',
-   alias: ['help', 'bot'],
+   name: 'ping',
+   alias: ['p'],
    category: 'main',
    desc: '',
    use: '',
-   async exec(m) {
+   async exec(m, { args }) {
       try {
-         await m.reply(`Test!!`)
+         await m.reply(args[0] || 'Pong!!')
       } catch (e) {
          m.reply(e.message)
       }
-   }
+   },
+   owner: true
 }
