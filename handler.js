@@ -13,7 +13,7 @@ module.exports = async (sock, m) => {
          chats = global.db.chats[m.chat],
          users = global.db.users[m.sender],
          setting = global.db.setting
-      sock.sendPresenceUpdate('available', msg.from)
+      sock.sendPresenceUpdate('available', m.chat)
       const body = typeof m.text == 'string' ? m.text : false
       const getPrefix = body ? body.charAt(0) : ''
       const myPrefix = (setting.multiprefix ? setting.prefix.includes(getPrefix) : setting.onlyprefix == getPrefix) ? getPrefix : undefined
