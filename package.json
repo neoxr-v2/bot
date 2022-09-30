@@ -17,8 +17,11 @@
    "dependencies": {
       "@adiwajshing/keyed-db": "^0.2.4",
       "@colors/colors": "1.5.0",
+      "@discordjs/collection": "^0.5.0",
+      "@hapi/boom": "^9.1.4",
       "axios":"~0.24.0",
       "baileys":"4.5.8",
+      "bluebird": "^3.7.2",
       "cfonts":"~2.10.0",
       "chalk":"~4.1.0",
       "cheerio":"~1.0.0-rc.5",
@@ -31,6 +34,7 @@
       "fluent-ffmpeg": "^2.1.2",
       "form-data":"~4.0.0",
       "html-entities":"~2.3.2",
+      "jimp": "^0.16.1",
       "jsdom":"16.6.0",
       "mime-types":"~2.1.32",
       "moment-timezone":"~0.5.34",
@@ -47,12 +51,6 @@
       "syntax-error":"~1.4.0",
       "usetube": "^2.1.4",
       "util":"~0.12.4",
-      "wa-sticker-formatter": "3.6.0",
-      "@discordjs/collection": "^0.5.0",
-      "@hapi/boom": "^9.1.4",
-      "bluebird": "^3.7.2",
-      "jimp": "^0.16.1",
-      "pino": "^7.6.5",
-      "qrcode-terminal": "^0.12.0"
+      "wa-sticker-formatter": "3.6.0"
    }
 }

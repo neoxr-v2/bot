@@ -93,6 +93,16 @@ const Socket = (...args) => {
       })
    }
    
+   client.sendReact = async (jid, emoticon, keys = {}) => {
+      let reactionMessage = {
+         react: {
+            text: emoticon,
+            key: keys
+         }
+      }
+      return await client.sendMessage(jid, reactionMessage)
+   }
+   
    client.sendFile = async (jid, url, name, caption = '', quoted, opts, options) => {
       let {
          status,
