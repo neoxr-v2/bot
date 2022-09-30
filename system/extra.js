@@ -66,7 +66,7 @@ const Socket = (...args) => {
    return sock
 }
 
-const Serialize = (msg, sock) => {
+const Serialize = (m, sock) => {
    if (m.key) {
       m.id = m.key.id
       m.isSelf = m.key.fromMe
