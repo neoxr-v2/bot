@@ -9,7 +9,7 @@ const fs = require('fs')
 
 const Socket = (...args) => {
    let sock = makeWASocket(...args)
-   Object.defineProperty(client, 'name', {
+   Object.defineProperty(sock, 'name', {
       value: 'WASocket',
       configurable: true,
    })
