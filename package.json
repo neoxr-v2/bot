@@ -1,0 +1,40 @@
+{
+   "name": "neoxr-bot",
+   "version": "1.0.0",
+   "description": "Simple whatsapp bot with baileys multi device.",
+   "main": "socket.js",
+   "type": "commonjs",
+   "directories": {
+      "lib": "lib",
+      "system": "system"
+   },
+   "scripts": {
+      "test": "echo \"Error: no test specified\" && exit 1",
+      "start": "node socket.js"
+   },
+   "author": "Wildan Izzudin",
+   "license": "MIT",
+   "dependencies": {
+      "@adiwajshing/keyed-db": "^0.2.4",
+      "@colors/colors": "1.5.0",
+      "baileys": "4.5.8",
+      "child_process": "~1.0.2",
+      "dotenv": "^16.0.1",
+      "fs": "0.0.1-security",
+      "jimp": "^0.16.1",
+      "moment-timezone": "^0.5.34",
+      "mongoose": "5.10.8",
+      "os": "^0.1.2",
+      "path": "~0.12.7",
+      "pg": "^8.7.3",
+      "util": "~0.12.4"
+   },
+   "devDependencies": {
+      "@discordjs/collection": "^0.5.0",
+      "@hapi/boom": "^9.1.4",
+      "bluebird": "^3.7.2",
+      "jimp": "^0.16.1",
+      "pino": "^7.6.5",
+      "qrcode-terminal": "^0.12.0"
+   }
+}
