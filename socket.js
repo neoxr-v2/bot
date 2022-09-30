@@ -96,8 +96,8 @@ const connect = async () => {
          })
       }
       if (connection === 'open') {
-     	global.db.creds = client.authState.creds
-         console.log(colors.green(`Connected, you login as ${client.user.name}`))
+     	global.db.creds = sock.authState.creds
+         console.log(colors.green(`Connected, you login as ${sock.user.name}`))
       }
       if (connection === 'close') {
          lastDisconnect.error.output.statusCode !== DisconnectReason.loggedOut ? connect() : console.log(colors.red(`Can't connect to Web Socket.`))
@@ -108,7 +108,7 @@ const connect = async () => {
    sock.ev.on('creds.update', saveState)
    
    setInterval(async () => {
-      global.db.creds = client.authState.creds
+      global.db.creds = sock.authState.creds
       if (global.db) await props.save()
    }, 10_000)
 
