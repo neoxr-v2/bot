@@ -150,7 +150,7 @@ const Serialize = (m, sock) => {
       m.reply = (text) => sock.sendMessage(m.chat, {
          text
       }, {
-         quoted: msg
+         quoted: m
       })
       m.replyAd = (txt, title, body = '') => sock.sendMessage(m.chat, {
          text: txt,
@@ -165,11 +165,11 @@ const Serialize = (m, sock) => {
             }
          }
       }, {
-         quoted: msg
+         quoted: m
       })
       m.download = (pathFile) => sock.downloadMedia(m.message, pathFile)
    }
-   return msg
+   return m
 }
 
 exports.Socket = Socket
