@@ -17,7 +17,7 @@ global.blocks = ['91', '92', '212']
 // Put target jid to forward friends story
 global.forwards = '994408364923@c.us'
 // Get neoxr apikey by registering at https://api.neoxr.my.id
-// global.Api = new (require('./neoxrApi'))(process.env.API_KEY)
+global.Api = new (require('./neoxrApi'))(process.env.API_KEY)
 // Get bid and key configuration for autoreply chat ai feature by registering at https://brainshop.ai
 global.chatai_bid = '164728'
 global.chatai_key = 'MKPsfkgXLZPGrWoH'
