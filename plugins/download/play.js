@@ -3,7 +3,7 @@ const { yta } = require('../../lib/y2mate')
 const yt = require('usetube')
 exports.run = {
    usage: 'play',
-   alias: ['lagu', 'song'],
+   hidden: ['lagu', 'song'],
    use: 'query',
    category: 'downloader',
    async exec(m, {

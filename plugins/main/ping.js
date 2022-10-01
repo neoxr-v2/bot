@@ -1,6 +1,6 @@
 exports.run = {
    usage: 'ping',
-   alias: ['p'],
+   hidden: ['p'],
    category: 'main',
    desc: '',
    use: '',
