@@ -17,7 +17,7 @@ exports.run = {
             if (usage.length == 0) return client.reply(m.chat, Func.texted('bold', `🚩 Category not available.`), m)
             let print = ''
             cmd.map(v => {
-               print += `◦  ${isPrefix + v.run.usage} ${'*' + v.run.use + '*' || ''} 
+               print += `◦  ${isPrefix + v.run.usage} ${'*' + v.run.use + '*' || ''}`
                print += v.run.alias ? `\n${v.run.alias.map(v => ◦  ${isPrefix + v} ${'*' + v.run.use + '*' || ''}` : ''
             }).join('\n')
             return m.reply(print)
