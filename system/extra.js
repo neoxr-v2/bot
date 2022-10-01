@@ -301,24 +301,24 @@ const Serialize = (m, client) => {
       m.isPrivate = m.chat.endsWith('@s.whatsapp.net')
    }
    if (m.message) {
-      m.type = getContentType(m.message)
-      if (m.type === 'ephemeralMessage') {
-         m.message = m.message[m.type].message
+      m.mtype = getContentType(m.message)
+      if (m.mtype === 'ephemeralMessage') {
+         m.message = m.message[m.mtype].message
          const tipe = Object.keys(m.message)[0]
-         m.type = tipe
+         m.mtype = tipe
          if (tipe === 'viewOnceMessage') {
-            m.message = m.message[m.type].message
-            m.type = getContentType(m.message)
+            m.message = m.message[m.mtype].message
+            m.mtype = getContentType(m.message)
          }
       }
-      if (m.type === 'viewOnceMessage') {
-         m.message = m.message[m.type].message
-         m.type = getContentType(m.message)
+      if (m.mtype === 'viewOnceMessage') {
+         m.message = m.message[m.mtype].message
+         m.mtype = getContentType(m.message)
       }
 
-      m.mentions = m.message[m.type]?.contextInfo ? m.message[m.type]?.contextInfo.mentionedJid : []
+      m.mentions = m.message[m.mtype]?.contextInfo ? m.message[m.mtype]?.contextInfo.mentionedJid : []
       try {
-         const quoted = m.message[m.type]?.contextInfo
+         const quoted = m.message[m.mtype]?.contextInfo
          if (quoted.quotedMessage['ephemeralMessage']) {
             const tipe = Object.keys(quoted.quotedMessage.ephemeralMessage.message)[0]
             if (tipe === 'viewOnceMessage') {
@@ -370,8 +370,8 @@ const Serialize = (m, client) => {
       } catch {
          m.quoted = null
       }
-      m.text = m.body = m.message?.conversation || m.message?.[m.type]?.text || m.message?.[m.type]?.caption || (m.type === 'listResponseMessage') && m.message?.[m.type]?.singleSelectReply?.selectedRowId ||
-         (m.type === 'buttonsResponseMessage') && m.message?.[m.type]?.selectedButtonId || (m.type === 'templateButtonReplyMessage') && m.message?.[m.type]?.selectedId || ''
+      m.text = m.body = m.message?.conversation || m.message?.[m.mtype]?.text || m.message?.[m.mtype]?.caption || (m.mtype === 'listResponseMessage') && m.message?.[m.mtype]?.singleSelectReply?.selectedRowId ||
+         (m.mtype === 'buttonsResponseMessage') && m.message?.[m.mtype]?.selectedButtonId || (m.mtype === 'templateButtonReplyMessage') && m.message?.[m.mtype]?.selectedId || ''
       m.reply = (text) => client.sendMessage(m.chat, {
          text
       }, {
