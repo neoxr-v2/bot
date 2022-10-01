@@ -233,6 +233,45 @@ const Socket = (...args) => {
       }
    }
    
+   client.sendButton = async (jid, source, text, footer, quoted, buttons = [], type) => {
+      let {
+         file,
+         mime
+      } = await Func.getFile(source)
+      let options = (type && type.location) ? {
+         location: {
+            jpegThumbnail: await Func.fetchBuffer(source)
+         },
+         headerType: 6
+      } : /video/.test(mime) ? {
+         video: {
+            url: file
+         },
+         headerType: 5
+      } : /image/.test(mime) ? {
+         image: {
+            url: file
+         },
+         headerType: 4
+      } : {
+         document: {
+            url: file
+         },
+         headerType: 3
+      }
+      let buttonMessage = {
+         caption: text,
+         footerText: footer,
+         buttons: buttons,
+         ...options,
+         mentions: client.parseMention(text)
+      }
+      await client.sendPresenceUpdate('composing', jid)
+      return client.sendMessage(jid, buttonMessage, {
+         quoted
+      })
+   }
+   
    client.sendList = async (jid, title, text, footer, btnText, sections = [], quoted) => {
       let listMessage = {
          title: title,

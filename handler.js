@@ -18,6 +18,7 @@ module.exports = async (client, m) => {
       require('./system/exec')(client, m, isOwner)
       const getPrefix = body ? body.charAt(0) : ''
       const myPrefix = (setting.multiprefix ? setting.prefix.includes(getPrefix) : setting.onlyprefix == getPrefix) ? getPrefix : undefined
+      require('./system/logs')(client, m, myPrefix)
       let isPrefix
       if (body && body.length != 1 && (isPrefix = (myPrefix || '')[0])) {
          let args = body.replace(isPrefix, '').split` `.filter(v => v)
@@ -26,7 +27,7 @@ module.exports = async (client, m) => {
          let clean = start.trim().split` `.slice(1)
          let text = clean.join` `
          let prefixes = global.db.setting.multiprefix ? global.db.setting.prefix : [global.db.setting.onlyprefix]
-         let is_commands = global.p.commands.get(command) || global.p.commands.filter((cmd) => cmd.run.usage).find((cmd) => cmd.run.usage && cmd.run.usage.includes(command)) || global.p.commands.filter((cmd) => cmd.run.hidden).find((cmd) => cmd.run.hidden && cmd.run.hidden.includes(command))
+         let is_commands = global.p.commands.get(command) || global.p.commands.filter(v => v.run.usage).find(v => v.run.usage && v.run.usage == command) || global.p.commands.filter(v => v.run.hidden).find(v => v.run.hidden && v.run.hidden.some(v => v == command)) || global.p.commands.filter(v => v.run.alias).find(v => v.run.alias && v.run.alias.some(v => v == command))
          try {
             const cmd = is_commands.run
             if (cmd.error) return client.reply(m.chat, global.status.errorF, m)
