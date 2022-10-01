@@ -16,9 +16,9 @@ exports.run = {
             for (let k of keys) usage.push(k)
             if (usage.length == 0) return client.reply(m.chat, Func.texted('bold', `🚩 Category not available.`), m)
             let print = ''
-            cmd.map(v => {
+            cmd.sort().map(v => {
                print += `◦  ${isPrefix + v.run.usage} ${v.run.use ? '*' + v.run.use + '*' : ''}`
-               print += v.run.alias ? `\n${v.run.alias.map(x => `◦  ${isPrefix + x} ${v.run.use ? '*' + v.run.use + '*' : ''}`).join('\n')}` : ''
+               print += v.run.alias ? `\n${v.run.alias.sort().map(x => `◦  ${isPrefix + x} ${v.run.use ? '*' + v.run.use + '*' : ''}`).join('\n')}\n` : ''
             }).join('\n')
             return m.reply(print)
          } else {
