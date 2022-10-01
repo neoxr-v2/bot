@@ -586,7 +586,7 @@ module.exports = class Function {
    /* Get Basename From Path
     * @param {String} path
     */ 
-   basename = (path) => {
-   	return path.parse(__filename).name
+   basename = (dir) => {
+   	return path.parse(dir).name
    }
 }
