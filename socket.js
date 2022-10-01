@@ -20,7 +20,7 @@ const commands = () => {
    Scandir('./plugins').then(files => {
       files.filter(v => v.endsWith('.js')).map(file => {
          const command = require(file)
-         const { name, usage } = commamd.run
+         const { name, usage } = command.run
          p.commands.set(name ? name : usage, command)
       })
    }).catch(e => console.error(e))
