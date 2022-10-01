@@ -85,6 +85,7 @@ module.exports = async (client, m) => {
          })
       } else {
          let is_addons = global.p.commands.filter(v => v.run.addons)
+         let prefixes = setting.multiprefix ? setting.prefix : [setting.onlyprefix]
          let tmp = []
          for (let obj of is_addons) tmp.push(obj)
 		 let is_obj = Object.fromEntries(tmp)
