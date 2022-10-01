@@ -23,7 +23,7 @@ exports.run = {
          } else {
             const cmds = global.p.commands.keys()
             for (let cmd of cmds) {
-               let info = commands.get(cmd).run
+               let info = global.p.commands.get(cmd).run
                if (!cmd) continue;
                if (!info.category || info.category === 'private') continue
                if (Object.keys(category).includes(info.category)) category[info.category].push(info)
