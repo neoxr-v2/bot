@@ -29,83 +29,62 @@ module.exports = async (client, m) => {
          let text = clean.join` `
          let prefixes = global.db.setting.multiprefix ? global.db.setting.prefix : [global.db.setting.onlyprefix]
          let is_commands = global.p.commands.get(command) || global.p.commands.filter(v => v.run.usage).find(v => v.run.usage && v.run.usage == command) || global.p.commands.filter(v => v.run.hidden).find(v => v.run.hidden && v.run.hidden.some(v => v == command)) || global.p.commands.filter(v => v.run.alias).find(v => v.run.alias && v.run.alias.some(v => v == command))
-         try {
-            const cmd = is_commands.run
-            if (cmd.error) return client.reply(m.chat, global.status.errorF, m)
-            if (cmd.owner && !isOwner) return client.reply(m.chat, global.status.owner, m)
-            if (cmd.premium && !isPrem) return client.reply(m.chat, global.status.premium, m)
-            if (cmd.limit && users.limit < 1) return client.reply(m.chat, `🚩 Your bot usage has reached the limit and will be reset at 00.00\n\nTo get more limits, upgrade to a premium plan send *${prefixes[0]}premium*`, m).then(() => users.premium = false)
-            if (cmd.limit && users.limit > 0) {
-               let limit = cmd.limit.constructor.name == 'Boolean' ? 1 : cmd.limit
-               if (users.limit >= limit) {
-                  users.limit -= limit
-               } else {
-                  return client.reply(m.chat, Func.texted('bold', `🚩 Your limit is not enough to use this feature.`), m)
-               }
-            }
-            if (cmd.group && !m.isGroup) {
-               return client.reply(m.chat, global.status.group, m)
-            } else if (cmd.botAdmin && !isBotAdmin) {
-               return client.reply(m.chat, global.status.botAdmin, m)
-            } else if (cmd.admin && !isAdmin) {
-               return client.reply(m.chat, global.status.admin, m)
-            }
-            if (cmd.private && m.isGroup) return client.reply(m.chat, global.status.private, m)
-            cmd.exec(m, {
-               client,
-               args,
-               text,
-               isPrefix,
-               command,
-               participants,
-               blockList,
-               isAdmin,
-               isBotAdmin,
-               isOwner
-            })
-         } catch (e) {
-            console.error("[CMD ERROR] ", e);
-         }
-      } else {
-        /* let prefixes = setting.multiprefix ? setting.prefix : [setting.onlyprefix]
-         let is_events = global.p.commands.filter(ev => !ev.run.usage)
-         let event = is_events.run
-         if (event.error) return client.reply(m.chat, global.status.errorF, m)
-         if (event.owner && !isOwner) return client.reply(m.chat, global.status.owner, m)
-         if (event.premium && !isPrem) return client.reply(m.chat, global.status.premium, m)
-         if (event.limit && users.limit < 1) return client.reply(m.chat, `🚩 Your bot usage has reached the limit and will be reset at 00.00\n\nTo get more limits, upgrade to a premium plan send ${prefixes[0]}premium`, m).then(() => users.premium = false)
-         if (event.limit && users.limit > 0) {
-            let limit = event.limit.constructor.name == 'Boolean' ? 1 : event.limit
+         const cmd = is_commands.run || {}
+         if (cmd.error) return client.reply(m.chat, global.status.errorF, m)
+         if (cmd.owner && !isOwner) return client.reply(m.chat, global.status.owner, m)
+         if (cmd.premium && !isPrem) return client.reply(m.chat, global.status.premium, m)
+         if (cmd.limit && users.limit < 1) return client.reply(m.chat, `🚩 Your bot usage has reached the limit and will be reset at 00.00\n\nTo get more limits, upgrade to a premium plan send *${prefixes[0]}premium*`, m).then(() => users.premium = false)
+         if (cmd.limit && users.limit > 0) {
+            let limit = cmd.limit.constructor.name == 'Boolean' ? 1 : cmd.limit
             if (users.limit >= limit) {
                users.limit -= limit
             } else {
                return client.reply(m.chat, Func.texted('bold', `🚩 Your limit is not enough to use this feature.`), m)
             }
          }
-         if (event.group && !m.isGroup) {
+         if (cmd.group && !m.isGroup) {
             return client.reply(m.chat, global.status.group, m)
-         } else if (event.botAdmin && !isBotAdmin) {
+         } else if (cmd.botAdmin && !isBotAdmin) {
             return client.reply(m.chat, global.status.botAdmin, m)
-         } else if (event.admin && !isAdmin) {
+         } else if (cmd.admin && !isAdmin) {
             return client.reply(m.chat, global.status.admin, m)
          }
-         if (event.private && m.isGroup) return client.reply(m.chat, global.status.private, m)
-         event.async(m, {
+         if (cmd.private && m.isGroup) return client.reply(m.chat, global.status.private, m)
+         cmd.exec(m, {
             client,
-            body,
+            args,
+            text,
+            isPrefix,
+            command,
             participants,
-            prefixes,
-            isOwner,
+            blockList,
             isAdmin,
             isBotAdmin,
-            users,
-            chats,
-            groupSet,
-            groupMetadata,
-            setting
-         }) */
+            isOwner
+         })
+      } else if (global.p.commands.filter(v => v.run.regex).find(v => v.run.regex && body.match(v.run.regex))) {
+         let is_events = global.p.commands.filter(v => v.run.regex).find(v => v.run.regex && body.match(v.run.regex))
+         let prefixes = setting.multiprefix ? setting.prefix : [setting.onlyprefix]
+         const ev = is_events.run || {}
+         if (ev.error) return client.reply(m.chat, global.status.errorF, m)
+         if (ev.owner && !isOwner) return client.reply(m.chat, global.status.owner, m)
+         if (ev.premium && !isPrem) return client.reply(m.chat, global.status.premium, m)
+         if (ev.limit && users.limit < 1) return client.reply(m.chat, `🚩 Your bot usage has reached the limit and will be reset at 00.00\n\nTo get more limits, upgrade to a premium plan send *${prefixes[0]}premium*`, m).then(() => users.premium = false)
+         if (ev.limit && users.limit > 0) {
+            let limit = ev.limit.constructor.name == 'Boolean' ? 1 : ev.limit
+            if (users.limit >= limit) {
+               users.limit -= limit
+            } else {
+               return client.reply(m.chat, Func.texted('bold', `🚩 Your limit is not enough to use this feature.`), m)
+            }
+         }
+         ev.exec(m, {
+            client,
+            body,
+            prefixes
+         })
       }
    } catch (e) {
-      console.log("[CHATS ERROR] ", String(e))
+      m.reply(Func.jsonFormat(e))
    }
 }
