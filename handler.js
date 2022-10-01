@@ -26,7 +26,7 @@ module.exports = async (client, m) => {
          let clean = start.trim().split` `.slice(1)
          let text = clean.join` `
          let prefixes = global.db.setting.multiprefix ? global.db.setting.prefix : [global.db.setting.onlyprefix]
-         let is_commands = global.p.commands.get(command) || global.p.commands.filter((cmd) => cmd.run.usage).find((cmd) => cmd.run.usage && cmd.run.usage.includes(command) || cmd.run.hidden && cmd.run.hidden.includes(command))
+         let is_commands = global.p.commands.get(command) || global.p.commands.filter((cmd) => cmd.run.usage).find((cmd) => cmd.run.usage && cmd.run.usage.includes(command)) || global.p.commands.filter((cmd) => cmd.run.usage).find((cmd) => cmd.run.hidden && cmd.run.hidden.includes(command))
          try {
             const cmd = is_commands.run
             if (cmd.error) return client.reply(m.chat, global.status.errorF, m)

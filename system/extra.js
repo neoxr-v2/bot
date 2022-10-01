@@ -323,6 +323,23 @@ const Serialize = (m, client) => {
             fromMe: m.quoted.isSelf,
             remoteJid: m.chat
          }
+         m.quoted.id = m.msg.contextInfo.stanzaId
+         m.quoted.chat = m.msg.contextInfo.remoteJid || m.chat
+         m.quoted.isBot = m.quoted.id ? (m.quoted.id.startsWith('BAE5') && m.quoted.id.length === 16 || m.quoted.id.startsWith('3EB0') && m.quoted.id.length === 12 || m.quoted.id.startsWith('3EB0') && m.quoted.id.length === 20 || m.quoted.id.startsWith('B24E') && m.quoted.id.length === 20) : false
+         m.quoted.sender = m.msg.contextInfo.participant.split(":")[0] || m.msg.contextInfo.participant
+         m.quoted.fromMe = m.quoted.sender === (client.user && client.user.id)
+         m.quoted.mentionedJid = m.msg.contextInfo ? m.msg.contextInfo.mentionedJid : []
+         let vM = m.quoted.fakeObj = proto.WebMessageInfo.fromObject({
+            key: {
+               remoteJid: m.quoted.chat,
+               fromMe: m.quoted.fromMe,
+               id: m.quoted.id
+            },
+            message: quoted,
+            ...(m.isGroup ? {
+               participant: m.quoted.sender
+            } : {})
+         })
          m.quoted.delete = () => client.sendMessage(m.chat, {
             delete: m.quoted.key
          })
