@@ -22,6 +22,7 @@ exports.run = {
             return m.reply(print)
          } else {
             const cmds = global.p.commands.keys()
+            let category = []
             for (let cmd of cmds) {
                let info = global.p.commands.get(cmd).run
                if (!cmd) continue;
