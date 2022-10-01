@@ -73,11 +73,9 @@ const connect = async () => {
    })
 
    client.ev.on('messages.upsert', async msg => {
-    	if (msg.type !== "notify") return
-        let m = Serialize(JSON.parse(JSON.stringify(msg.messages[0])), client)
+        m = msg.messages[0]
         if (!m.message) return
-        if (m.key && m.key.remoteJid === 'status@broadcast') return
-        if (m.type === "protocolMessage" || m.type === "senderKeyDistributionMessage" || !msg.type || msg.type === "") return
+        Serialize(client, m)
         require('./system/config'), require('./handler')(client, m)
    })
 

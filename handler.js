@@ -19,6 +19,7 @@ module.exports = async (client, m) => {
       const getPrefix = body ? body.charAt(0) : ''
       const myPrefix = (setting.multiprefix ? setting.prefix.includes(getPrefix) : setting.onlyprefix == getPrefix) ? getPrefix : undefined
       require('./system/logs')(client, m, myPrefix)
+      if (m.isBot || m.chat.endsWith('broadcast')) return
       let isPrefix
       if (body && body.length != 1 && (isPrefix = (myPrefix || '')[0])) {
          let args = body.replace(isPrefix, '').split` `.filter(v => v)

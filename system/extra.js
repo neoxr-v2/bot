@@ -290,111 +290,78 @@ const Socket = (...args) => {
    return client
 }
 
-const Serialize = (m, client) => {
+const Serialize = (client, m) => {
+   if (!m) return m
+   let M = proto.WebMessageInfo
    if (m.key) {
       m.id = m.key.id
-      m.fromMe = m.key.fromMe
+      m.isBot = m.id.startsWith('BAE5') && m.id.length === 16 || m.id.startsWith('3EB0') && m.id.length === 12 || m.id.startsWith('3EB0') && m.id.length === 20 || m.id.startsWith('B24E') && m.id.length === 20
       m.chat = m.key.remoteJid
-      m.sender = m.fromMe ? (client.type === 'legacy' ? client.state.legacy.user.id : (client.user.id.split(':')[0] + '@s.whatsapp.net' || client.user.id)) :
-         ((m.key.participant?.includes(':') ? m.key.participant?.split(':')[0] + '@s.whatsapp.net' : m.key.participant) || (m.key.remoteJid?.includes(':') ? m.key.remoteJid?.split(':')[0] + '@s.whatsapp.net' : m.key.remoteJid))
+      m.fromMe = m.key.fromMe
       m.isGroup = m.chat.endsWith('@g.us')
-      m.isPrivate = m.chat.endsWith('@s.whatsapp.net')
+      m.sender = m.fromMe ? (client.user.id.split(":")[0] + '@s.whatsapp.net' || client.user.id) : (m.key.participant || m.key.remoteJid)
    }
    if (m.message) {
-      m.mtype = getContentType(m.message)
+      if (m.message.viewOnceMessage) {
+         m.mtype = Object.keys(m.message.viewOnceMessage.message)[0]
+         m.msg = m.message.viewOnceMessage.message[m.mtype]
+      } else {
+         m.mtype = Object.keys(m.message)[0] == 'senderKeyDistributionMessage' ? Object.keys(m.message)[2] == 'messageContextInfo' ? Object.keys(m.message)[1] : Object.keys(m.message)[2] : Object.keys(m.message)[0] != 'messageContextInfo' ? Object.keys(m.message)[0] : Object.keys(m.message)[1]
+         m.msg = m.message[m.mtype]
+      }
       if (m.mtype === 'ephemeralMessage') {
-         m.message = m.message[m.mtype].message
-         const tipe = Object.keys(m.message)[0]
-         m.mtype = tipe
-         if (tipe === 'viewOnceMessage') {
-            m.message = m.message[m.mtype].message
-            m.mtype = getContentType(m.message)
-         }
+         Serialize(client, m.msg)
+         m.mtype = m.msg.mtype
+         m.msg = m.msg.msg
       }
-      if (m.mtype === 'viewOnceMessage') {
-         m.message = m.message[m.mtype].message
-         m.mtype = getContentType(m.message)
-      }
-
-      m.mentions = m.message[m.mtype]?.contextInfo ? m.message[m.mtype]?.contextInfo.mentionedJid : []
-      try {
-         const quoted = m.message[m.mtype]?.contextInfo
-         if (quoted.quotedMessage['ephemeralMessage']) {
-            const tipe = Object.keys(quoted.quotedMessage.ephemeralMessage.message)[0]
-            if (tipe === 'viewOnceMessage') {
-               m.quoted = {
-                  type: 'view_once',
-                  stanzaId: quoted.stanzaId,
-                  participant: quoted.participant.includes(':') ? quoted.participant.split(':')[0] + '@s.whatsapp.net' : quoted.participant,
-                  message: quoted.quotedMessage.ephemeralMessage.message.viewOnceMessage.message
-               }
-            } else {
-               m.quoted = {
-                  type: 'ephemeral',
-                  stanzaId: quoted.stanzaId,
-                  participant: quoted.participant.includes(':') ? quoted.participant.split(':')[0] + '@s.whatsapp.net' : quoted.participant,
-                  message: quoted.quotedMessage.ephemeralMessage.message
-               }
-            }
-         } else if (quoted.quotedMessage['viewOnceMessage']) {
-            m.quoted = {
-               type: 'view_once',
-               stanzaId: quoted.stanzaId,
-               participant: quoted.participant.includes(':') ? quoted.participant.split(':')[0] + '@s.whatsapp.net' : quoted.participant,
-               message: quoted.quotedMessage.viewOnceMessage.message
-            }
-         } else {
-            m.quoted = {
-               type: 'normal',
-               stanzaId: quoted.stanzaId,
-               participant: quoted.participant.includes(':') ? quoted.participant.split(':')[0] + '@s.whatsapp.net' : quoted.participant,
-               message: quoted.quotedMessage
-            }
+      let quoted = m.quoted = typeof m.msg != 'undefined' ? m.msg.contextInfo ? m.msg.contextInfo.quotedMessage : null : null
+      m.mentionedJid = typeof m.msg != 'undefined' ? m.msg.contextInfo ? m.msg.contextInfo.mentionedJid : [] : []
+      if (m.quoted) {
+         let type = Object.keys(m.quoted)[0]
+         m.quoted = m.quoted[type]
+         if (['productMessage'].includes(type)) {
+            type = Object.keys(m.quoted)[0]
+            m.quoted = m.quoted[type]
          }
-         m.quoted.isSelf = m.quoted.participant === (client.type === 'legacy' ? client.state.legacy.user.id : (client.user.id && client.user.id.split(':')[0] + '@s.whatsapp.net'))
-         m.quoted.mtype = Object.keys(m.quoted.message).filter(v => v.includes('Message') || v.includes('conversation'))[0]
-         m.quoted.text =
-            m.quoted.message[m.quoted.mtype]?.text || m.quoted.message[m.quoted.mtype]?.description ||
-            m.quoted.message[m.quoted.mtype]?.caption || m.quoted.message[m.quoted.mtype]?.hydratedTemplate?.hydratedContentText ||
-            m.quoted.message[m.quoted.mtype] || ''
-         m.quoted.key = {
-            id: m.quoted.stanzaId,
-            fromMe: m.quoted.isSelf,
-            remoteJid: m.chat
+         if (typeof m.quoted === 'string') m.quoted = {
+            text: m.quoted
          }
-         m.quoted.sender = m.quoted.participant
-         m.quoted.delete = () => client.sendMessage(m.chat, {
-            delete: m.quoted.key
+         m.quoted.id = m.msg.contextInfo.stanzaId
+         m.quoted.chat = m.msg.contextInfo.remoteJid || m.chat
+         m.quoted.isBot = m.quoted.id ? (m.quoted.id.startsWith('BAE5') && m.quoted.id.length === 16 || m.quoted.id.startsWith('3EB0') && m.quoted.id.length === 12 || m.quoted.id.startsWith('3EB0') && m.quoted.id.length === 20 || m.quoted.id.startsWith('B24E') && m.quoted.id.length === 20) : false
+         m.quoted.sender = m.msg.contextInfo.participant.split(":")[0] || m.msg.contextInfo.participant
+         m.quoted.fromMe = m.quoted.sender === (client.user && client.user.id)
+         m.quoted.mentionedJid = m.msg.contextInfo ? m.msg.contextInfo.mentionedJid : []
+         let vM = m.quoted.fakeObj = M.fromObject({
+            key: {
+               remoteJid: m.quoted.chat,
+               fromMe: m.quoted.fromMe,
+               id: m.quoted.id
+            },
+            message: quoted,
+            ...(m.isGroup ? {
+               participant: m.quoted.sender
+            } : {})
          })
-         m.quoted.download = (pathFile) => client.downloadMedia(m.quoted.message, pathFile)
-      } catch {
-         m.quoted = null
+         m.quoted.mtype = m.quoted != null ? Object.keys(m.quoted.fakeObj.message)[0] : null
+         m.quoted.text = m.quoted.text || m.quoted.caption || (m.quoted.mtype == 'buttonsMessage' ? m.quoted.contentText : '') || (m.quoted.mtype == 'templateMessage' ? m.quoted.hydratedFourRowTemplate.hydratedContentText : '') || ''
+         m.quoted.info = async () => {
+            let q = await store.loadMessage(m.chat, m.quoted.id, client)
+            return Serialize(client, q)
+         }
+         m.quoted.download = () => client.downloadMediaMessage(m.quoted)
       }
-      m.text = m.body = m.message?.conversation || m.message?.[m.mtype]?.text || m.message?.[m.mtype]?.caption || (m.mtype === 'listResponseMessage') && m.message?.[m.mtype]?.singleSelectReply?.selectedRowId ||
-         (m.mtype === 'buttonsResponseMessage') && m.message?.[m.mtype]?.selectedButtonId || (m.mtype === 'templateButtonReplyMessage') && m.message?.[m.mtype]?.selectedId || ''
-      m.reply = (text) => client.sendMessage(m.chat, {
+   }
+   if (typeof m.msg != 'undefined') {
+      if (m.msg.url) m.download = () => client.downloadMediaMessage(m.msg)
+   }
+   m.reply = (text) => client.sendMessage(m.chat, {
          text
       }, {
          quoted: m
       })
-      m.replyAd = (txt, title, body = '') => client.sendMessage(m.chat, {
-         text: txt,
-         contextInfo: {
-            externalAdReply: {
-               title: title,
-               body: body,
-               previewType: 'PHOTO',
-               thumbnailUrl: 'https://img.freepik.com/free-vector/laptop-with-program-code-isometric-icon-software-development-programming-applications-dark-neon_39422-971.jpg?t=st=1650126483~exp=1650127083~hmac=4655d51ed454e422d55d87d9eab7ff1af10f5f2a02f575305305c2364f3598c8&w=740',
-               sourceUrl: '',
-               showAdAttribution: true
-            }
-         }
-      }, {
-         quoted: m
-      })
-      m.download = (pathFile) => client.downloadMedia(m.message, pathFile)
-   }
-   return m
+   m.text = (m.mtype == 'stickerMessage' ? (typeof global.db.sticker[m.msg.fileSha256.toString().replace(/,/g, '')] != 'undefined') ? global.db.sticker[m.msg.fileSha256.toString().replace(/,/g, '')].text : '' : '') || (m.mtype == 'listResponseMessage' ? m.message.listResponseMessage.singleSelectReply.selectedRowId : '') || (m.mtype == 'buttonsResponseMessage' ? m.message.buttonsResponseMessage.selectedButtonId : '') || (m.mtype == 'templateButtonReplyMessage' ? m.message.templateButtonReplyMessage.selectedId : '') || (typeof m.msg != 'undefined' ? m.msg.text : '') || (typeof m.msg != 'undefined' ? m.msg.caption : '') || m.msg || ''
+   return M.fromObject(m)
 }
 
 Scandir = async (dir) => {
