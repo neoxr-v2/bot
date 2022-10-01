@@ -582,4 +582,11 @@ module.exports = class Function {
       }
       return result
    }
+   
+   /* Get Basename From Path
+    * @param {String} path
+    */ 
+   basename = (path) => {
+   	return path.parse(__filename).name
+   }
 }

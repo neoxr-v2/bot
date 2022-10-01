@@ -83,6 +83,28 @@ module.exports = async (client, m) => {
             body,
             prefixes
          })
+      } else {
+         let is_addons = global.p.commands.filter(v => v.run.addons)
+         let tmp = []
+         for (let obj of is_addons) tmp.push(obj)
+		 let is_obj = Object.fromEntries(tmp)
+		 for (let name in is_obj) {
+			let event = is_obj[name].run
+			event.async(m, {
+               client,
+               body,
+               participants,
+               prefixes,
+               isOwner,
+               isAdmin,
+               isBotAdmin,
+               users,
+               chats,
+               groupSet,
+               groupMetadata,
+               setting
+            })
+		 }    
       }
    } catch (e) {
       m.reply(Func.jsonFormat(e))
