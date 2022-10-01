@@ -293,9 +293,9 @@ const Socket = (...args) => {
 const Serialize = (m, client) => {
    if (m.key) {
       m.id = m.key.id
-      m.isSelf = m.key.fromMe
+      m.fromMe = m.key.fromMe
       m.chat = m.key.remoteJid
-      m.sender = m.isSelf ? (client.type === 'legacy' ? client.state.legacy.user.id : (client.user.id.split(':')[0] + '@s.whatsapp.net' || client.user.id)) :
+      m.sender = m.fromMe ? (client.type === 'legacy' ? client.state.legacy.user.id : (client.user.id.split(':')[0] + '@s.whatsapp.net' || client.user.id)) :
          ((m.key.participant?.includes(':') ? m.key.participant?.split(':')[0] + '@s.whatsapp.net' : m.key.participant) || (m.key.remoteJid?.includes(':') ? m.key.remoteJid?.split(':')[0] + '@s.whatsapp.net' : m.key.remoteJid))
       m.isGroup = m.chat.endsWith('@g.us')
       m.isPrivate = m.chat.endsWith('@s.whatsapp.net')
