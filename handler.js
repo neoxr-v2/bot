@@ -62,8 +62,8 @@ module.exports = async (client, m) => {
             isBotAdmin,
             isOwner
          })
-      } else if (global.p.commands.filter(v => v.run.regex).find(v => v.run.regex && body.match(v.run.regex))) {
-         let is_events = global.p.commands.filter(v => v.run.regex).find(v => v.run.regex && body.match(v.run.regex))
+      } else if (global.p.commands.filter(v => v.run.regex).find(v => v.run.regex && body && body.match(v.run.regex))) {
+         let is_events = global.p.commands.filter(v => v.run.regex).find(v => v.run.regex && body && body.match(v.run.regex))
          let prefixes = setting.multiprefix ? setting.prefix : [setting.onlyprefix]
          const ev = is_events.run || {}
          if (ev.error) return client.reply(m.chat, global.status.errorF, m)

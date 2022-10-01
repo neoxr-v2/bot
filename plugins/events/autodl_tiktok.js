@@ -1,5 +1,5 @@
 exports.run = {
-   usage: '-1',
+   name: Func.makeId(5),
    regex: /^(?:https?:\/\/)?(?:www\.|vt\.|vm\.|t\.)?(?:tiktok\.com\/)(?:\S+)?$/,
    category: '---',
    async exec(m, {
