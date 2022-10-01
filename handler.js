@@ -91,7 +91,7 @@ module.exports = async (client, m) => {
 		 let is_obj = Object.fromEntries(tmp)
 		 for (let name in is_obj) {
 			let event = is_obj[name].run
-			event.async(m, {
+			event.exec(m, {
                client,
                body,
                participants,
