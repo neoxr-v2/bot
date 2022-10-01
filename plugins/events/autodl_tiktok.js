@@ -1,4 +1,5 @@
 exports.run = {
+   usage: '-1',
    regex: /^(?:https?:\/\/)?(?:www\.|vt\.|vm\.|t\.)?(?:tiktok\.com\/)(?:\S+)?$/,
    category: '---',
    async exec(m, {
