@@ -2,7 +2,7 @@ const { decode } = require('html-entities')
 const { yta } = require('../../lib/y2mate')
 const yt = require('usetube')
 exports.run = {
-   name: 'play',
+   usage: 'play',
    alias: ['lagu', 'song'],
    use: 'query',
    category: 'downloader',
@@ -50,5 +50,6 @@ exports.run = {
    },
    error: false,
    limit: true,
-   restrict: true
+   restrict: true,
+   location: __filename
 }

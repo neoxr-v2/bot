@@ -26,11 +26,30 @@ module.exports = async (client, m) => {
          let clean = start.trim().split` `.slice(1)
          let text = clean.join` `
          let prefixes = global.db.setting.multiprefix ? global.db.setting.prefix : [global.db.setting.onlyprefix]
-         let commands = global.p.commands.get(command) || global.p.commands.filter((cmd) => cmd.run.alias).find((cmd) => cmd.run.alias && cmd.run.alias.includes(command))
+         let is_commands = global.p.commands.get(command) || global.p.commands.filter((cmd) => cmd.run.usage).find((cmd) => cmd.run.usage && cmd.run.usage.includes(command))
          try {
-           const cmd = commands.run
-           if (cmd.owner && !isOwner) return client.reply(m.chat, global.status.owner, m)	
-           cmd.exec(m, {
+            const cmd = is_commands.run
+            if (cmd.error) return client.reply(m.chat, global.status.errorF, m)
+            if (cmd.owner && !isOwner) return client.reply(m.chat, global.status.owner, m)
+            if (cmd.premium && !isPrem) return client.reply(m.chat, global.status.premium, m)
+            if (cmd.limit && users.limit < 1) return client.reply(m.chat, `🚩 Your bot usage has reached the limit and will be reset at 00.00\n\nTo get more limits, upgrade to a premium plan send *${prefixes[0]}premium*`, m).then(() => users.premium = false)
+            if (cmd.limit && users.limit > 0) {
+               let limit = cmd.limit.constructor.name == 'Boolean' ? 1 : cmd.limit
+               if (users.limit >= limit) {
+                  users.limit -= limit
+               } else {
+                  return client.reply(m.chat, Func.texted('bold', `🚩 Your limit is not enough to use this feature.`), m)
+               }
+            }
+            if (cmd.group && !m.isGroup) {
+               return client.reply(m.chat, global.status.group, m)
+            } else if (cmd.botAdmin && !isBotAdmin) {
+               return client.reply(m.chat, global.status.botAdmin, m)
+            } else if (cmd.admin && !isAdmin) {
+               return client.reply(m.chat, global.status.admin, m)
+            }
+            if (cmd.private && m.isGroup) return client.reply(m.chat, global.status.private, m)
+            cmd.exec(m, {
                client,
                args,
                text,
@@ -45,6 +64,44 @@ module.exports = async (client, m) => {
          } catch (e) {
             console.error("[CMD ERROR] ", e);
          }
+      } else {
+        /* let prefixes = setting.multiprefix ? setting.prefix : [setting.onlyprefix]
+         let is_events = global.p.commands.filter(ev => !ev.run.usage)
+         let event = is_events.run
+         if (event.error) return client.reply(m.chat, global.status.errorF, m)
+         if (event.owner && !isOwner) return client.reply(m.chat, global.status.owner, m)
+         if (event.premium && !isPrem) return client.reply(m.chat, global.status.premium, m)
+         if (event.limit && users.limit < 1) return client.reply(m.chat, `🚩 Your bot usage has reached the limit and will be reset at 00.00\n\nTo get more limits, upgrade to a premium plan send ${prefixes[0]}premium`, m).then(() => users.premium = false)
+         if (event.limit && users.limit > 0) {
+            let limit = event.limit.constructor.name == 'Boolean' ? 1 : event.limit
+            if (users.limit >= limit) {
+               users.limit -= limit
+            } else {
+               return client.reply(m.chat, Func.texted('bold', `🚩 Your limit is not enough to use this feature.`), m)
+            }
+         }
+         if (event.group && !m.isGroup) {
+            return client.reply(m.chat, global.status.group, m)
+         } else if (event.botAdmin && !isBotAdmin) {
+            return client.reply(m.chat, global.status.botAdmin, m)
+         } else if (event.admin && !isAdmin) {
+            return client.reply(m.chat, global.status.admin, m)
+         }
+         if (event.private && m.isGroup) return client.reply(m.chat, global.status.private, m)
+         event.async(m, {
+            client,
+            body,
+            participants,
+            prefixes,
+            isOwner,
+            isAdmin,
+            isBotAdmin,
+            users,
+            chats,
+            groupSet,
+            groupMetadata,
+            setting
+         }) */
       }
    } catch (e) {
       console.log("[CHATS ERROR] ", String(e))

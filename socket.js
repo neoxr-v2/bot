@@ -20,7 +20,7 @@ const commands = () => {
    Scandir('./plugins').then(files => {
       files.filter(v => v.endsWith('.js')).map(file => {
          const command = require(file)
-         p.commands.set(command.run.name, command)
+         p.commands.set(command.run.usage, command)
       })
    }).catch(e => console.error(e))
    console.log('Command loaded!')

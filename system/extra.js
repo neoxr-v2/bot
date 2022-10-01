@@ -232,6 +232,21 @@ const Socket = (...args) => {
          }
       }
    }
+   
+   client.sendList = async (jid, title, text, footer, btnText, sections = [], quoted) => {
+      let listMessage = {
+         title: title,
+         text: text,
+         footer: footer,
+         buttonText: btnText,
+         sections,
+         mentions: client.parseMention(text)
+      }
+      await client.sendPresenceUpdate('composing', jid)
+      return client.sendMessage(jid, listMessage, {
+         quoted
+      })
+   }
 
    return client
 }
