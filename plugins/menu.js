@@ -15,11 +15,18 @@ exports.run = {
                keys = cmd.keys()
             for (let k of keys) usage.push(k)
             if (usage.length == 0) return client.reply(m.chat, Func.texted('bold', `🚩 Category not available.`), m)
-            let print = ''
-            cmd.sort().map(v => {
-               print += `◦  ${isPrefix + v.run.usage} ${v.run.use ? '*' + v.run.use + '*' : ''}`
-               print += v.run.alias ? `\n${v.run.alias.sort().map(x => `◦  ${isPrefix + x} ${v.run.use ? '*' + v.run.use + '*' : ''}`).join('\n')}\n` : ''
-            }).join('\n')
+            let commands = []
+            cmd.map(v => {
+               commands.push({
+                  usage: v.run.usage,
+                  use: v.run.use || ''
+               })
+               if (v.run.alias) v.run.alias.map(x => commands.push({
+                  usage: x,
+                  use: v.run.use || ''
+               }))
+            })
+            const print = commands.sort((a, b) => a.usage.localeCompare(b.usage)).map(v => `◦  ${isPrefix + v.usage} ${v.use}`).join('\n')
             return m.reply(print)
          } else {
             const cmds = global.p.commands.keys()

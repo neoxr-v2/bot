@@ -1,6 +1,6 @@
 exports.run = {
    usage: 'ping',
-   hidden: ['p'],
+   hidden: ['pantek'],
    category: 'main',
    desc: '',
    use: '',
