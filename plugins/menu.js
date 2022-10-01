@@ -18,7 +18,7 @@ exports.run = {
             let print = ''
             cmd.map(v => {
                print += `◦  ${isPrefix + v.run.usage} ${'*' + v.run.use + '*' || ''}`
-               print += v.run.alias ? `\n${v.run.alias.map(v => ◦  ${isPrefix + v} ${'*' + v.run.use + '*' || ''}` : ''
+               print += v.run.alias ? `\n${v.run.alias.map(v => `◦  ${isPrefix + v} ${'*' + v.run.use + '*' || ''}`).join('\n')}` : ''
             }).join('\n')
             return m.reply(print)
          } else {
