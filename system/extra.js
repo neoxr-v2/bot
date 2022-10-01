@@ -251,7 +251,7 @@ const Socket = (...args) => {
    return client
 }
 
-const Serialize = (client, m) => {
+const Serialize = (m, client) => {
    if (!m) return m
    let M = proto.WebMessageInfo
    if (m.key) {
