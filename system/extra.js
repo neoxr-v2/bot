@@ -371,7 +371,7 @@ const Serialize = (m, client) => {
          m.quoted = null
       }
       m.text = m.body = m.message?.conversation || m.message?.[m.type]?.text || m.message?.[m.type]?.caption || (m.type === 'listResponseMessage') && m.message?.[m.type]?.singleSelectReply?.selectedRowId ||
-         (m.type === 'buttonsResponseMessage' && m.message?.[m.type]?.selectedButtonId || (m.type === 'templateButtonReplyMessage') && m.message?.[m.type]?.selectedId || ''
+         (m.type === 'buttonsResponseMessage') && m.message?.[m.type]?.selectedButtonId || (m.type === 'templateButtonReplyMessage') && m.message?.[m.type]?.selectedId || ''
       m.reply = (text) => client.sendMessage(m.chat, {
          text
       }, {
