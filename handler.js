@@ -143,29 +143,6 @@ module.exports = async (client, m) => {
             isBotAdmin,
             isOwner
          })
-      } else if (global.p.commands.filter(v => v.run.regex).some(v => v.run.regex) && body && setting.autodownload) {
-         const urls = Func.generateLink(body)
-         if (!urls) return
-         let is_events = global.p.commands.filter(v => v.run.regex).find(v => urls.some(x => x.match(v.run.regex)))
-         let prefixes = setting.multiprefix ? setting.prefix : [setting.onlyprefix]
-         const event = is_events.run || {}
-         if (event.error) return client.reply(m.chat, global.status.errorF, m)
-         if (event.owner && !isOwner) return client.reply(m.chat, global.status.owner, m)
-         if (event.premium && !isPrem) return client.reply(m.chat, global.status.premium, m)
-         if (event.limit && users.limit < 1) return client.reply(m.chat, `🚩 Your bot usage has reached the limit and will be reset at 00.00\n\nTo get more limits, upgrade to a premium plan send *${prefixes[0]}premium*`, m).then(() => users.premium = false)
-         if (event.limit && users.limit > 0) {
-            let limit = event.limit.constructor.name == 'Boolean' ? 1 : event.limit
-            if (users.limit >= limit) {
-               users.limit -= limit
-            } else {
-               return client.reply(m.chat, Func.texted('bold', `🚩 Your limit is not enough to use this feature.`), m)
-            }
-         }
-         event.exec(m, {
-            client,
-            body,
-            prefixes
-         })
       } else if (global.p.commands.filter(v => v.run.name && !v.run.regex)) {
          let is_events = global.p.commands.filter(v => v.run.name && !v.run.regex)
          let prefixes = setting.multiprefix ? setting.prefix : [setting.onlyprefix]
