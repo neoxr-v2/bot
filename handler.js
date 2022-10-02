@@ -85,7 +85,6 @@ module.exports = async (client, m) => {
          let commands = is_usage.concat(is_alias)
          let matcher = Func.matcher(command, commands).filter(v => v.accuracy >= 60)
          let is_commands = global.p.commands.get(command) || global.p.commands.filter(v => v.run.usage).find(v => v.run.usage && v.run.usage == command) || global.p.commands.filter(v => v.run.hidden).find(v => v.run.hidden && v.run.hidden.some(v => v == command)) || global.p.commands.filter(v => v.run.alias).find(v => v.run.alias && v.run.alias.some(v => v == command))
-         if (!is_commands) return
          try {
             if (new Date() * 1 - chats.command > (global.cooldown * 1000)) {
                chats.command = new Date() * 1
@@ -107,6 +106,7 @@ module.exports = async (client, m) => {
             users.usebot = new Date() * 1
             Func.hitstat(command, m.sender)
          }
+         if (!is_commands) return
          const cmd = is_commands.run || {}
          if (body && global.evaluate_chars.some(v => body.startsWith(v)) && !body.startsWith(myPrefix)) return
          if (!m.isGroup && global.blocks.some(no => m.sender.startsWith(no))) return client.updateBlockStatus(m.sender, 'block')
@@ -164,7 +164,7 @@ module.exports = async (client, m) => {
             body,
             prefixes
          })
-      } else {
+      } else if (global.p.commands.filter(v => !v.run.alias && !v.run.regex)) {
          let is_events = global.p.commands.filter(v => !v.run.alias && !v.run.regex)
          let prefixes = setting.multiprefix ? setting.prefix : [setting.onlyprefix]
          let tmp = []
