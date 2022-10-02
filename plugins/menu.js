@@ -1,7 +1,7 @@
 exports.run = {
    usage: 'menu',
    alias: ['help', 'bot'],
-   category: 'main',
+   hidden: ['menutype'],
    async exec(m, {
       client,
       args,
@@ -46,7 +46,7 @@ exports.run = {
             for (let k of keys) {
                rows.push({
                   title: k.toUpperCase(),
-                  rowId: `${isPrefix + command} ${k}`,
+                  rowId: `${isPrefix}menutype ${k}`,
                   description: ``
                })
             }
