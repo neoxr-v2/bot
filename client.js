@@ -14,7 +14,6 @@ global.Func = new (require('./system/function'))
 global.props = new(require('./system/dataset'))
 global.p = require('@discordjs/collection')
 p.commands = new p.Collection()
-p.prefix = '/'
 
 const commands = () => {
    Scandir('./plugins').then(files => {
