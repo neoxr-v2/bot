@@ -33,7 +33,6 @@ exports.run = {
       }
    },
    error: false,
-   download: true,
    limit: true,
    location: __filename
 }

@@ -143,8 +143,10 @@ module.exports = async (client, m) => {
             isBotAdmin,
             isOwner
          })
-      } else if (global.p.commands.filter(v => v.run.regex).find(v => v.run.regex && v.run.download) && body && setting.autodownload) {
-         let is_events = global.p.commands.filter(v => v.run.regex).find(v => v.run.regex && v.run.download)
+      } else if (global.p.commands.filter(v => v.run.regex).some(v => v.run.regex) && body && setting.autodownload) {
+         const urls = Func.generateLink(body)
+         if (urls.length == 0) return
+         let is_events = global.p.commands.filter(v => v.run.regex).find(v => urls.some(x => x.match(v.run.regex)))
          let prefixes = setting.multiprefix ? setting.prefix : [setting.onlyprefix]
          const event = is_events.run || {}
          if (event.error) return client.reply(m.chat, global.status.errorF, m)
