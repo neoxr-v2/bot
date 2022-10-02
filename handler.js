@@ -101,8 +101,8 @@ module.exports = async (client, m) => {
             body,
             prefixes
          })
-      } else if (global.p.commands.filter(v => !v.run.alias && !v.run.regex)) {
-         let is_events = global.p.commands.filter(v => !v.run.alias && !v.run.regex)
+      } else if (global.p.commands.filter(v => v.run.name && !v.run.regex)) {
+         let is_events = global.p.commands.filter(v => v.run.name && !v.run.regex)
          let prefixes = setting.multiprefix ? setting.prefix : [setting.onlyprefix]
          let tmp = []
          for (let obj of is_events) tmp.push(obj)
@@ -114,27 +114,7 @@ module.exports = async (client, m) => {
                Func.reload(file)
             }
             if (!m.isGroup && global.blocks.some(no => m.sender.startsWith(no))) return client.updateBlockStatus(m.sender, 'block')
-            if (m.isGroup && !['exec'].includes(name) && groupSet.mute) continue
-            if (setting.pluginDisable.includes(name)) continue
-            if (!m.isGroup && chats && !isPrem && !users.banned && new Date() * 1 - chats.lastchat < global.timer) continue
-            if (!m.isGroup && chats && !isPrem && !users.banned && setting.groupmode) return client.sendMessageModify(m.chat, `🚩 Using bot in private chat only for premium user, upgrade to premium plan only Rp. 5,000,- to get 1K limits.\n\nIf you want to buy contact *${prefixes[0]}owner*`, m, {
-               title: '© neoxr-bot v2.2.0 (Public Bot)',
-               largeThumb: true,
-               thumbnail: await Func.fetchBuffer('https://telegra.ph/file/0b32e0a0bb3b81fef9838.jpg'),
-               url: 'https://chat.whatsapp.com/Dh1USlrqIfmJT6Ji0Pm2pP'
-            }).then(() => chats.lastchat = new Date() * 1)
-            if (setting.self && !['chatAI', 'exec'].includes(name) && !isOwner && !m.fromMe) continue
-            if (!m.isGroup && ['chatAI'].includes(name) && body && Func.socmed(body)) continue
-            if (!['exec', 'restrict'].includes(name) && users && users.banned) continue
-            if (!['anti_link', 'anti_tagall', 'anti_virtex', 'filter', 'exec'].includes(name) && users && (users.banned || new Date - users.banTemp < global.timer)) continue
-            if (!['anti_link', 'anti_tagall', 'anti_virtex', 'filter', 'exec'].includes(name) && groupSet && groupSet.mute) continue
             if (event.error) continue
-            if (event.owner && !isOwner) continue
-            if (event.group && !m.isGroup) continue
-            if (event.limit && users.limit < 1) continue
-            if (event.botAdmin && !isBotAdmin) continue
-            if (event.admin && !isAdmin) continue
-            if (event.private && m.isGroup) continue
             event.exec(m, {
                client,
                body,
