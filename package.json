@@ -2,7 +2,7 @@
    "name": "neoxr-bot",
    "version": "1.0.0",
    "description": "Simple whatsapp bot with baileys multi device.",
-   "main": "socket.js",
+   "main": "index.js",
    "type": "commonjs",
    "directories": {
       "lib": "lib",
