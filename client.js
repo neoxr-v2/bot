@@ -6,12 +6,15 @@ const fs = require('fs'),
    pino = require('pino'),
    logger = pino({
       level: 'silent'
-   })
-const { makeInMemoryStore, DisconnectReason, useSingleFileAuthState, fetchLatestBaileysVersion } = require('baileys')
+   }),
+   spinnies = new (require('spinnies'))()
+const { makeInMemoryStore, DisconnectReason, useSingleFileAuthState, fetchLatestBaileysVersion, msgRetryCounterMap } = require('baileys')
 const { state,  saveState } = useSingleFileAuthState(path(__dirname, 'session.json'), logger)
+global.store = makeInMemoryStore({ logger })
 const { Socket, Serialize, Scandir } = require('./system/extra')
 global.Func = new (require('./system/function'))
 global.props = new(require('./system/dataset'))
+global.scrap = new (require('./system/scraper'))
 global.p = require('@discordjs/collection')
 p.commands = new p.Collection()
 
@@ -23,21 +26,13 @@ const commands = () => {
          p.commands.set(name ? name : usage, command)
       })
    }).catch(e => console.error(e))
-   console.log('Command loaded!')
+   console.log(colors.green('Command loaded!'))
 }
 
-// start a connection
 const connect = async () => {
    let content = await props.fetch()
    if (!content || Object.keys(content).length === 0) {
-      global.db = {
-         users: {},
-         chats: {},
-         groups: {},
-         statistic: {},
-         sticker: {},
-         setting: {}
-      }
+      global.db = {users:{},chats:{},groups:{},statistic:{},sticker:{},setting:{}}
       await props.save()
    } else {
       global.db = content
@@ -70,9 +65,15 @@ const connect = async () => {
       logger,
       printQRInTerminal: true,
       auth: state,
+      msgRetryCounterMap,
       version: global.wa_version || version,
-      generateHighQualityLinkPreview: true
+      generateHighQualityLinkPreview: true,
+      getMessage: async (key) => {
+         return await store.loadMessage(client.decodeJid(key.remoteJid), key.id)
+      }
    })
+   
+   store.bind(client.ev)
 
    client.ev.on('messages.upsert', async msg => {
         m = msg.messages[0]
@@ -81,7 +82,7 @@ const connect = async () => {
         require('./system/config'), require('./handler')(client, m)
    })
 
-   client.ev.on('connection.update', (update) => {
+   client.ev.on('connection.update', async (update) => {
       const {
          connection,
          lastDisconnect,
@@ -92,17 +93,84 @@ const connect = async () => {
             small: true
          })
       }
+      if (connection === 'connecting') spinnies.add('start', {
+         text: 'Connecting . . .'
+      })
       if (connection === 'open') {
-     	global.db.creds = client.authState.creds
-         console.log(colors.green(`Connected, you login as ${client.user.name}`))
+         global.db.creds = client.authState.creds
+         spinnies.succeed('start', {
+            text: `Connected, you login as ${client.user.name || client.user.verifiedName}`
+         })
       }
       if (connection === 'close') {
-         lastDisconnect.error.output.statusCode !== DisconnectReason.loggedOut ? connect() : console.log(colors.red(`Can't connect to Web Socket.`))
+         if (lastDisconnect.error.output.statusCode == DisconnectReason.loggedOut) {
+            spinnies.fail('start', {
+               text: `Can't connect to Web Socket`
+            })
+            delete global.db.creds
+            await props.save()
+            process.exit(0)
+         } else {
+            connect().catch(() => connect())
+         }
+      }   
+      if (update.receivedPendingNotifications) await client.reply(global.owner + '@c.us', Func.texted('bold', `🚩 Successfully connected to WhatsApp.`))
+   })
+
+   client.ev.on('creds.update', saveState)
+   
+   client.ev.on('contacts.update', update => {
+      for (let contact of update) {
+         let id = client.decodeJid(contact.id)
+         if (store && store.contacts) store.contacts[id] = {
+            id,
+            name: contact.notify
+         }
+      }
+   })
+   
+   client.ev.on('group-participants.update', async (room) => {
+      let meta = await (await client.groupMetadata(room.id))
+      let member = room.participants[0]
+      let text_welcome = `Thank you +tag for joining into +grup group.`
+      let text_left = `+tag left from this group for no apparent reason.`
+      let groupSet = global.db.groups[room.id]
+      try {
+         pic = await Func.fetchBuffer(await client.profilePictureUrl(member, 'image'))
+      } catch {
+         pic = await Func.fetchBuffer(await client.profilePictureUrl(room.id, 'image'))
+      }
+      if (room.action == 'add') {
+         if (groupSet.localonly) {
+            if (typeof global.db.users[member] != 'undefined' && !global.db.users[member].whitelist && !member.startsWith('62') || !member.startsWith('62')) {
+               client.reply(room.id, Func.texted('bold', `Sorry @${member.split`@`[0]}, this group is only for indonesian people and you will removed automatically.`))
+               client.updateBlockStatus(member, 'block')
+               return await Func.delay(2000).then(() => client.groupParticipantsUpdate(room.id, [member], 'remove'))
+            }
+         }
+         let txt = (groupSet.text_welcome != '' ? groupSet.text_welcome : text_welcome).replace('+tag', `@${member.split`@`[0]}`).replace('+grup', `${meta.subject}`)
+         if (groupSet.welcome) client.sendMessageModify(room.id, txt, null, {
+            largeThumb: true,
+            thumbnail: pic,
+            url: 'https://chat.whatsapp.com/Dh1USlrqIfmJT6Ji0Pm2pP'
+         })
+      } else if (room.action == 'remove') {
+         let txt = (groupSet.text_left != '' ? groupSet.text_left : text_left).replace('+tag', `@${member.split`@`[0]}`).replace('+grup', `${meta.subject}`)
+         if (groupSet.left) client.sendMessageModify(room.id, txt, null, {
+            largeThumb: true,
+            thumbnail: pic,
+            url: 'https://chat.whatsapp.com/Dh1USlrqIfmJT6Ji0Pm2pP'
+         })
       }
    })
 
-   // listen for when the auth credentials is updated
-   client.ev.on('creds.update', saveState)
+   client.ws.on('CB:call', async json => {
+      if (json.content[0].tag == 'offer') {
+         let object = json.content[0].attrs['call-creator']
+         await Func.delay(2000)
+         await client.updateBlockStatus(object, 'block')
+      }
+   })
    
    setInterval(async () => {
       global.db.creds = client.authState.creds

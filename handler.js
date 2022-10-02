@@ -61,6 +61,19 @@ module.exports = async (client, m) => {
             groupSet.member[m.sender].lastseen = now
          }
       }
+      if (((m.isGroup && !groupSet.mute) || !m.isGroup) && !users.banned) {
+         if (body && body == myPrefix) {
+            let old = new Date()
+            let banchat = setting.self ? true : false
+            if (!banchat) {
+               await client.reply(m.chat, Func.texted('bold', `Checking . . .`), m)
+               return client.reply(m.chat, Func.texted('bold', `Response Speed: ${((new Date - old) * 1)}ms`), m)
+            } else {
+               await client.reply(m.chat, Func.texted('bold', `Checking . . .`), m)
+               return client.reply(m.chat, Func.texted('bold', `Response Speed: ${((new Date - old) * 1)}ms (nonaktif)`), m)
+            }
+         }
+      }
       require('./system/exec')(client, m, isOwner)
       const getPrefix = body ? body.charAt(0) : ''
       const myPrefix = (setting.multiprefix ? setting.prefix.includes(getPrefix) : setting.onlyprefix == getPrefix) ? getPrefix : undefined
@@ -144,7 +157,31 @@ module.exports = async (client, m) => {
             isOwner
          })
       } else {
-         if (global.p.commands.filter(v => v.run.name && !v.run.regex).some(v => !v.run.regex)) {
+      	if (global.p.commands.some(v => v.run.regex) && body && setting.autodownload) {
+            const urls = Func.generateLink(body)
+            if (!urls) return
+            let is_events = global.p.commands.filter(v => v.run.regex).find(v => urls.some(x => x.match(v.run.regex)))
+            let prefixes = setting.multiprefix ? setting.prefix : [setting.onlyprefix]
+            const event = is_events.run || {}
+            if (event.error) return client.reply(m.chat, global.status.errorF, m)
+            if (event.owner && !isOwner) return client.reply(m.chat, global.status.owner, m)
+            if (event.premium && !isPrem) return client.reply(m.chat, global.status.premium, m)
+            if (event.limit && users.limit < 1) return client.reply(m.chat, `🚩 Your bot usage has reached the limit and will be reset at 00.00\n\nTo get more limits, upgrade to a premium plan send *${prefixes[0]}premium*`, m).then(() => users.premium = false)
+            if (event.limit && users.limit > 0) {
+               let limit = event.limit.constructor.name == 'Boolean' ? 1 : event.limit
+               if (users.limit >= limit) {
+                  users.limit -= limit
+               } else {
+                  return client.reply(m.chat, Func.texted('bold', `🚩 Your limit is not enough to use this feature.`), m)
+               }
+            }
+            event.exec(m, {
+               client,
+               body,
+               prefixes
+            })
+         }
+         if (global.p.commands.some(v => v.run.name && !v.run.regex)) {
             let is_events = global.p.commands.filter(v => v.run.name && !v.run.regex)
             let prefixes = setting.multiprefix ? setting.prefix : [setting.onlyprefix]
             let tmp = []
@@ -169,32 +206,6 @@ module.exports = async (client, m) => {
                })
             }
          }
-            
-         if (global.p.commands.filter(v => v.run.regex).some(v => v.run.regex) && body && setting.autodownload) {
-            const urls = Func.generateLink(body)
-            if (!urls) return
-            let is_events = global.p.commands.filter(v => v.run.regex).find(v => urls.some(x => x.match(v.run.regex)))
-            let prefixes = setting.multiprefix ? setting.prefix : [setting.onlyprefix]
-            const event = is_events.run || {}
-            if (event.error) return client.reply(m.chat, global.status.errorF, m)
-            if (event.owner && !isOwner) return client.reply(m.chat, global.status.owner, m)
-            if (event.premium && !isPrem) return client.reply(m.chat, global.status.premium, m)
-            if (event.limit && users.limit < 1) return client.reply(m.chat, `🚩 Your bot usage has reached the limit and will be reset at 00.00\n\nTo get more limits, upgrade to a premium plan send *${prefixes[0]}premium*`, m).then(() => users.premium = false)
-            if (event.limit && users.limit > 0) {
-               let limit = event.limit.constructor.name == 'Boolean' ? 1 : event.limit
-               if (users.limit >= limit) {
-                  users.limit -= limit
-               } else {
-                  return client.reply(m.chat, Func.texted('bold', `🚩 Your limit is not enough to use this feature.`), m)
-               }
-            }
-            event.exec(m, {
-               client,
-               body,
-               prefixes
-            })
-         }
-         
       }
    } catch (e) {
       if (!m.fromMe) return m.reply(Func.jsonFormat(e))

@@ -54,6 +54,24 @@ const Socket = (...args) => {
       return /:/i.test(jid) ? jid.split`:` [0] + '@s.whatsapp.net' : jid
    }
    
+   client.getName = (jid, withoutContact = true) => {
+      id = client.decodeJid(jid)
+      withoutContact = client.withoutContact || withoutContact
+      let v
+      if (id.endsWith("@g.us")) return new Promise(async (resolve) => {
+         v = global.store.contacts[id] || {}
+         if (!(v.name || v.subject)) v = client.groupMetadata(id) || {}
+         resolve(v.name || v.subject || PhoneNumber('+' + id.replace('@s.whatsapp.net', '')).getNumber('international'))
+      })
+      else v = id === '0@s.whatsapp.net' ? {
+            id,
+            name: 'WhatsApp'
+         } : id === client.decodeJid(client.user.id) ?
+         client.user :
+         (global.store.contacts[id] || {})
+      return (withoutContact ? '' : v.name) || v.subject || v.verifiedName || PhoneNumber('+' + jid.replace('@s.whatsapp.net', '')).getNumber('international')
+   }
+   
    client.copyNForward = async (jid, message, forceForward = false, options = {}) => {
       let vtype
       if (options.readViewOnce) {
