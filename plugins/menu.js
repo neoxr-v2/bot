@@ -19,11 +19,11 @@ exports.run = {
             cmd.map(v => {
                commands.push({
                   usage: v.run.usage,
-                  use: Func.texted('bold', v.run.use) || ''
+                  use: v.run.use ? Func.texted('bold', v.run.use) : ''
                })
                if (v.run.alias) v.run.alias.map(x => commands.push({
                   usage: x,
-                  use: Func.texted('bold', v.run.use) || ''
+                  use: v.run.use ? Func.texted('bold', v.run.use) : ''
                }))
             })
             const print = commands.sort((a, b) => a.usage.localeCompare(b.usage)).map(v => `◦  ${isPrefix + v.usage} ${v.use}`).join('\n')
