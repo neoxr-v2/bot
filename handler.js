@@ -107,6 +107,9 @@ module.exports = async (client, m) => {
             Func.hitstat(command, m.sender)
          }
          const cmd = is_commands.run || {}
+         if (body && global.evaluate_chars.some(v => body.startsWith(v)) && !body.startsWith(myPrefix)) return
+         if (!m.isGroup && global.blocks.some(no => m.sender.startsWith(no))) return client.updateBlockStatus(m.sender, 'block')
+         if (setting.self && !isOwner && !m.fromMe) return
          if (cmd.error) return client.reply(m.chat, global.status.errorF, m)
          if (cmd.owner && !isOwner) return client.reply(m.chat, global.status.owner, m)
          if (cmd.premium && !isPrem) return client.reply(m.chat, global.status.premium, m)
