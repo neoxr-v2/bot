@@ -1,6 +1,7 @@
 exports.run = {
    usage: 'changename',
    hidden: ['botname'],
+   use: 'name',
    category: 'owner',
    async exec(m, {
       client,

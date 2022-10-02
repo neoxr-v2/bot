@@ -1,6 +1,7 @@
 exports.run = {
    usage: 'block',
    alias: ['unblock'],
+   use: 'mention or reply',
    category: 'owner',
    async exec(m, {
       client,
