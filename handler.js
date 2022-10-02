@@ -159,6 +159,31 @@ module.exports = async (client, m) => {
             isOwner
          })
       } else {
+      	if (global.p.commands.some(v => v.run.name && !v.run.regex)) {
+            let is_events = global.p.commands.filter(v => v.run.name && !v.run.regex)
+            let prefixes = setting.multiprefix ? setting.prefix : [setting.onlyprefix]
+            let tmp = []
+            for (let obj of is_events) tmp.push(obj)
+            let is_obj = Object.fromEntries(tmp)
+            for (let name in is_obj) {
+               let event = is_obj[name].run
+               event.exec(m, {
+                  client,
+                  body,
+                  participants,
+                  prefixes,
+                  isOwner,
+                  isAdmin,
+                  isBotAdmin,
+                  users,
+                  chats,
+                  groupSet,
+                  groupMetadata,
+                  setting
+               })
+            }
+         }
+         
       	if (global.p.commands.some(v => v.run.regex) && body && setting.autodownload) {
             const urls = Func.generateLink(body)
             if (!urls) return
@@ -184,32 +209,7 @@ module.exports = async (client, m) => {
                body,
                prefixes
             })
-         }
-         if (global.p.commands.some(v => v.run.name && !v.run.regex)) {
-            let is_events = global.p.commands.filter(v => v.run.name && !v.run.regex)
-            let prefixes = setting.multiprefix ? setting.prefix : [setting.onlyprefix]
-            let tmp = []
-            for (let obj of is_events) tmp.push(obj)
-            let is_obj = Object.fromEntries(tmp)
-            for (let name in is_obj) {
-               let event = is_obj[name].run
-               if (event.error) continue
-               event.exec(m, {
-                  client,
-                  body,
-                  participants,
-                  prefixes,
-                  isOwner,
-                  isAdmin,
-                  isBotAdmin,
-                  users,
-                  chats,
-                  groupSet,
-                  groupMetadata,
-                  setting
-               })
-            }
-         }
+         } 
       }
    } catch (e) {
       if (!m.fromMe) return m.reply(Func.jsonFormat(e))
