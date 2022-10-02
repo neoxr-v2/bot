@@ -58,5 +58,6 @@ exports.run = {
          m.reply(e.message)
       }
    },
-   error: false
+   error: false,
+   location: __filename
 }
