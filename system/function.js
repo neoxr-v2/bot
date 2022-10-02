@@ -12,6 +12,12 @@ const { tmpdir } = require('os')
 const moment = require('moment-timezone')
 moment.tz.setDefault('Asia/Jakarta').locale('id')
 const NodeID3 = require('node-id3')
+const {
+   read,
+   MIME_JPEG,
+   RESIZE_BILINEAR,
+   AUTO
+} = require('jimp')
 
 module.exports = class Function {
    /* Delay
@@ -50,6 +56,21 @@ module.exports = class Function {
             resolve(buff)
          }
       })
+   }
+  
+   /* Image Resizer for Thumbnail
+    * @param {String|Buffer} source
+    */
+   createThumb = async (source) => {
+      let {
+         file
+      } = await this.getFile(source)
+      let jimp = await read(await this.fetchBuffer(file))
+      let buff = await jimp
+         .quality(100)
+         .resize(200, AUTO, RESIZE_BILINEAR)
+         .getBufferAsync(MIME_JPEG)
+      return buff
    }
    
    /* Audio Metadata
