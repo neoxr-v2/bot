@@ -13,8 +13,52 @@ module.exports = async (client, m) => {
          chats = global.db.chats[m.chat],
          users = global.db.users[m.sender],
          setting = global.db.setting
-      client.sendPresenceUpdate('available', m.chat)
       const body = typeof m.text == 'string' ? m.text : false
+      if (!setting.online) await client.sendPresenceUpdate('unavailable', m.chat)
+      if (setting.online) await client.sendPresenceUpdate('available', m.chat)
+      if (setting.debug && !m.fromMe && isOwner) client.reply(m.chat, Func.jsonFormat(m), m)
+      if (m.isGroup && isBotAdmin) groupSet.localonly = false
+      if (m.isGroup && groupSet.autoread) await client.readMessages([m.key])
+      if (!m.isGroup) await client.readMessages([m.key])
+      if (m.isGroup) groupSet.activity = new Date() * 1
+      if (m.chat.endsWith('broadcast') && m.mtype != 'protocolMessage') {
+         let caption = `乂  *S T O R I E S*\n\n`
+         if (/video|image/.test(m.mtype)) {
+            caption += `${body ? body : ''}\n\n`
+            caption += `*From : @${m.sender.replace(/@.+/, '')} (${client.getName(m.sender)})*`
+            const media = await m.download()
+            client.sendFile(global.forwards, media, '', caption)
+         } else if (/extended/.test(m.mtype)) {
+            caption += `${body ? body : ''}\n\n`
+            caption += `*From : @${m.sender.replace(/@.+/, '')} (${client.getName(m.sender)})*`
+            client.reply(global.forwards, caption)
+         }
+      }
+      if (users) users.lastseen = new Date() * 1
+      if (chats) {
+         chats.lastseen = new Date() * 1
+         chats.chat += 1
+      }
+      if (m.isGroup && !m.isBot && users.afk > -1) {
+         client.reply(m.chat, `You are back online after being offline for : ${Func.texted('bold', Func.toTime(new Date - users.afk))}\n\n• ${Func.texted('bold', 'Reason')}: ${users.afkReason ? users.afkReason : '-'}`, m)
+         users.afk = -1
+         users.afkReason = ''
+      }
+      if (moment(new Date).format('HH:mm') == '00:00') {
+         Object.entries(global.db.users).filter(([_, data]) => !data.limit < 10 && !data.premium).map(([_, data]) => data.limit = global.limit)
+         Object.entries(global.db.statistic).map(([_, prop]) => prop.today = 0)
+      }
+      if (m.isGroup && !m.fromMe) {
+         let now = new Date() * 1
+         if (!groupSet.member[m.sender]) {
+            groupSet.member[m.sender] = {
+               lastseen: now,
+               warning: 0
+            }
+         } else {
+            groupSet.member[m.sender].lastseen = now
+         }
+      }
       require('./system/exec')(client, m, isOwner)
       const getPrefix = body ? body.charAt(0) : ''
       const myPrefix = (setting.multiprefix ? setting.prefix.includes(getPrefix) : setting.onlyprefix == getPrefix) ? getPrefix : undefined
@@ -28,7 +72,38 @@ module.exports = async (client, m) => {
          let clean = start.trim().split` `.slice(1)
          let text = clean.join` `
          let prefixes = global.db.setting.multiprefix ? global.db.setting.prefix : [global.db.setting.onlyprefix]
+         let usage = global.p.commands.filter(v => v.run.usage),
+            alias = global.p.commands.filter(v => v.run.alias)
+         let _usage = [],
+            _alias = []
+         for (let name of usage) _usage.push(name)
+         for (let name of alias) _alias.push(name)
+         let is_usage = Func.arrayJoin(Object.values(Object.fromEntries(_usage)).map(v => v.run.usage)),
+            is_alias = Func.arrayJoin(Object.values(Object.fromEntries(_alias)).map(v => v.run.alias))
+         let commands = is_usage.concat(is_alias)
+         let matcher = Func.matcher(command, commands).filter(v => v.accuracy >= 60)
          let is_commands = global.p.commands.get(command) || global.p.commands.filter(v => v.run.usage).find(v => v.run.usage && v.run.usage == command) || global.p.commands.filter(v => v.run.hidden).find(v => v.run.hidden && v.run.hidden.some(v => v == command)) || global.p.commands.filter(v => v.run.alias).find(v => v.run.alias && v.run.alias.some(v => v == command))
+         try {
+            if (new Date() * 1 - chats.command > (global.cooldown * 1000)) {
+               chats.command = new Date() * 1
+            } else {
+               if (!m.fromMe) return
+            }
+         } catch (e) {
+            global.db.chats[m.chat] = {}
+            global.db.chats[m.chat].command = new Date() * 1
+            global.db.chats[m.chat].chat = 1
+            global.db.chats[m.chat].lastseen = new Date() * 1
+         }
+         if (!commands.includes(command) && matcher.length > 0 && !setting.self) {
+            if (!m.isGroup || (m.isGroup && !groupSet.mute)) return client.reply(m.chat, `🚩 Command you are using is wrong, try the following recommendations :\n\n${matcher.map(v => '➠ *' + isPrefix + v.string + '* (' + v.accuracy + '%)').join('\n')}`, m)
+         }
+         if (setting.error.includes(command) && !setting.self) return client.reply(m.chat, Func.texted('bold', `🚩 Command _${isPrefix + command}_ disabled.`), m)
+         if (commands.includes(command)) {
+            users.hit += 1
+            users.usebot = new Date() * 1
+            Func.hitstat(command, m.sender)
+         }
          const cmd = is_commands.run || {}
          if (cmd.error) return client.reply(m.chat, global.status.errorF, m)
          if (cmd.owner && !isOwner) return client.reply(m.chat, global.status.owner, m)
@@ -62,36 +137,62 @@ module.exports = async (client, m) => {
             isBotAdmin,
             isOwner
          })
-      } else if (global.p.commands.filter(v => v.run.regex).find(v => v.run.regex && body && body.match(v.run.regex))) {
+      } else if (global.p.commands.filter(v => v.run.regex).find(v => v.run.regex && body && body.match(v.run.regex)) && setting.autodownload) {
          let is_events = global.p.commands.filter(v => v.run.regex).find(v => v.run.regex && body && body.match(v.run.regex))
          let prefixes = setting.multiprefix ? setting.prefix : [setting.onlyprefix]
-         const ev = is_events.run || {}
-         if (ev.error) return client.reply(m.chat, global.status.errorF, m)
-         if (ev.owner && !isOwner) return client.reply(m.chat, global.status.owner, m)
-         if (ev.premium && !isPrem) return client.reply(m.chat, global.status.premium, m)
-         if (ev.limit && users.limit < 1) return client.reply(m.chat, `🚩 Your bot usage has reached the limit and will be reset at 00.00\n\nTo get more limits, upgrade to a premium plan send *${prefixes[0]}premium*`, m).then(() => users.premium = false)
-         if (ev.limit && users.limit > 0) {
-            let limit = ev.limit.constructor.name == 'Boolean' ? 1 : ev.limit
+         const event = is_events.run || {}
+         if (event.error) return client.reply(m.chat, global.status.errorF, m)
+         if (event.owner && !isOwner) return client.reply(m.chat, global.status.owner, m)
+         if (event.premium && !isPrem) return client.reply(m.chat, global.status.premium, m)
+         if (event.limit && users.limit < 1) return client.reply(m.chat, `🚩 Your bot usage has reached the limit and will be reset at 00.00\n\nTo get more limits, upgrade to a premium plan send *${prefixes[0]}premium*`, m).then(() => users.premium = false)
+         if (event.limit && users.limit > 0) {
+            let limit = event.limit.constructor.name == 'Boolean' ? 1 : event.limit
             if (users.limit >= limit) {
                users.limit -= limit
             } else {
                return client.reply(m.chat, Func.texted('bold', `🚩 Your limit is not enough to use this feature.`), m)
             }
          }
-         ev.exec(m, {
+         event.exec(m, {
             client,
             body,
             prefixes
          })
       } else {
-         let is_addons = global.p.commands.filter(v => v.run.addons)
+         let is_addons = global.p.commands.filter(v => !v.run.alias && !v.run.regex)
          let prefixes = setting.multiprefix ? setting.prefix : [setting.onlyprefix]
          let tmp = []
          for (let obj of is_addons) tmp.push(obj)
-		 let is_obj = Object.fromEntries(tmp)
-		 for (let name in is_obj) {
-			let event = is_obj[name].run
-			event.exec(m, {
+         let is_obj = Object.fromEntries(tmp)
+         for (let name in is_obj) {
+            let event = is_obj[name].run
+            if (event.cache && event.location) {
+               let file = require.resolve(event.location)
+               Func.reload(file)
+            }
+            if (!m.isGroup && global.blocks.some(no => m.sender.startsWith(no))) return client.updateBlockStatus(m.sender, 'block')
+            if (m.isGroup && !['exec'].includes(name) && groupSet.mute) continue
+            if (setting.pluginDisable.includes(name)) continue
+            if (!m.isGroup && chats && !isPrem && !users.banned && new Date() * 1 - chats.lastchat < global.timer) continue
+            if (!m.isGroup && chats && !isPrem && !users.banned && setting.groupmode) return client.sendMessageModify(m.chat, `🚩 Using bot in private chat only for premium user, upgrade to premium plan only Rp. 5,000,- to get 1K limits.\n\nIf you want to buy contact *${prefixes[0]}owner*`, m, {
+               title: '© neoxr-bot v2.2.0 (Public Bot)',
+               largeThumb: true,
+               thumbnail: await Func.fetchBuffer('https://telegra.ph/file/0b32e0a0bb3b81fef9838.jpg'),
+               url: 'https://chat.whatsapp.com/Dh1USlrqIfmJT6Ji0Pm2pP'
+            }).then(() => chats.lastchat = new Date() * 1)
+            if (setting.self && !['chatAI', 'exec'].includes(name) && !isOwner && !m.fromMe) continue
+            if (!m.isGroup && ['chatAI'].includes(name) && body && Func.socmed(body)) continue
+            if (!['exec', 'restrict'].includes(name) && users && users.banned) continue
+            if (!['anti_link', 'anti_tagall', 'anti_virtex', 'filter', 'exec'].includes(name) && users && (users.banned || new Date - users.banTemp < global.timer)) continue
+            if (!['anti_link', 'anti_tagall', 'anti_virtex', 'filter', 'exec'].includes(name) && groupSet && groupSet.mute) continue
+            if (event.error) continue
+            if (event.owner && !isOwner) continue
+            if (event.group && !m.isGroup) continue
+            if (event.limit && users.limit < 1) continue
+            if (event.botAdmin && !isBotAdmin) continue
+            if (event.admin && !isAdmin) continue
+            if (event.private && m.isGroup) continue
+            event.exec(m, {
                client,
                body,
                participants,
@@ -105,7 +206,7 @@ module.exports = async (client, m) => {
                groupMetadata,
                setting
             })
-		 }    
+         }
       }
    } catch (e) {
       m.reply(Func.jsonFormat(e))

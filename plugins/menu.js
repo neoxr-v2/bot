@@ -33,8 +33,8 @@ exports.run = {
             let category = []
             for (let cmd of cmds) {
                let info = global.p.commands.get(cmd).run
-               if (!cmd) continue;
-               if (!info.category || info.category === '---') continue
+               if (!cmd) continue
+               if (!info.category) continue
                if (Object.keys(category).includes(info.category)) category[info.category].push(info)
                else {
                   category[info.category] = []

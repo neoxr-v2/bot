@@ -1,6 +1,6 @@
 exports.run = {
-   usage: 'addown',
-   alias: ['delown'],
+   usage: '+owner',
+   alias: ['-owner'],
    category: 'owner',
    use: 'mention or reply',
    async exec(m, {

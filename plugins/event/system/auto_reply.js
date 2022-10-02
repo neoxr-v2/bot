@@ -1,6 +1,5 @@
 exports.run = {
    name: Func.basename(__filename),
-   category: '---',
    async exec(m, {
       client,
       body
@@ -14,6 +13,5 @@ exports.run = {
       }
    },
    error: false,
-   addons: true,
    location: __filename
 }
