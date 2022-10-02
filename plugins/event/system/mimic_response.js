@@ -7,9 +7,7 @@ exports.run = {
    }) {
       try {
          if (setting.mimic.includes(m.sender) && !users.banned && (new Date - users.banTemp > 1800000)) {
-            client.copyNForward(m.chat, m, {
-               quoted: m.quoted ? m.quoted.fakeObj : null
-            })
+            client.copyNForward(m.chat, m)
          }
       } catch (e) {
          console.log(e)
