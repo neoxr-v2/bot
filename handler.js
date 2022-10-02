@@ -143,7 +143,7 @@ module.exports = async (client, m) => {
             isBotAdmin,
             isOwner
          })
-      } else if (global.p.commands.filter(v => v.run.regex).find(v => v.run.regex && body && body.match(v.run.regex)) && setting.autodownload) {
+      } else if (global.p.commands.filter(v => v.run.regex).find(v => v.run.regex && body && Func.socmed(body) && setting.autodownload) {
          let is_events = global.p.commands.filter(v => v.run.regex).find(v => v.run.regex && body && body.match(v.run.regex))
          let prefixes = setting.multiprefix ? setting.prefix : [setting.onlyprefix]
          const event = is_events.run || {}
