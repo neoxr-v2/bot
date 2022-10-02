@@ -1,3 +1,5 @@
+const moment = require('moment-timezone')
+moment.tz.setDefault('Asia/Jakarta').locale('id')
 module.exports = async (client, m) => {
    try {
       require('./system/database')(m)
@@ -159,10 +161,10 @@ module.exports = async (client, m) => {
             prefixes
          })
       } else {
-         let is_addons = global.p.commands.filter(v => !v.run.alias && !v.run.regex)
+         let is_events = global.p.commands.filter(v => !v.run.alias && !v.run.regex)
          let prefixes = setting.multiprefix ? setting.prefix : [setting.onlyprefix]
          let tmp = []
-         for (let obj of is_addons) tmp.push(obj)
+         for (let obj of is_events) tmp.push(obj)
          let is_obj = Object.fromEntries(tmp)
          for (let name in is_obj) {
             let event = is_obj[name].run
@@ -209,6 +211,6 @@ module.exports = async (client, m) => {
          }
       }
    } catch (e) {
-      m.reply(Func.jsonFormat(e))
+      if (!m.fromMe) return m.reply(Func.jsonFormat(e))
    }
 }
