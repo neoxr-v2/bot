@@ -19,11 +19,11 @@ exports.run = {
             cmd.map(v => {
                commands.push({
                   usage: v.run.usage,
-                  use: v.run.use || ''
+                  use: Func.texted('bold', v.run.use) || ''
                })
                if (v.run.alias) v.run.alias.map(x => commands.push({
                   usage: x,
-                  use: v.run.use || ''
+                  use: Func.texted('bold', v.run.use) || ''
                }))
             })
             const print = commands.sort((a, b) => a.usage.localeCompare(b.usage)).map(v => `◦  ${isPrefix + v.usage} ${v.use}`).join('\n')
@@ -32,13 +32,13 @@ exports.run = {
             const cmds = global.p.commands.keys()
             let category = []
             for (let cmd of cmds) {
-               let info = global.p.commands.get(cmd).run
+               let obj = global.p.commands.get(cmd).run
                if (!cmd) continue
-               if (!info.category) continue
-               if (Object.keys(category).includes(info.category)) category[info.category].push(info)
+               if (!obj.category) continue
+               if (Object.keys(category).includes(obj.category)) category[obj.category].push(obj)
                else {
-                  category[info.category] = []
-                  category[info.category].push(info)
+                  category[obj.category] = []
+                  category[obj.category].push(obj)
                }
             }
             let rows = []
@@ -50,7 +50,7 @@ exports.run = {
                   description: ``
                })
             }
-            await client.sendList(m.chat, '', global.db.setting.msg, '© neoxr-bot v2.2.0', 'Tap!', [{
+            await client.sendList(m.chat, '', global.db.setting.msg, `© neoxr-bot v${global.version}`, 'Tap!', [{
                rows
             }], m)
          }

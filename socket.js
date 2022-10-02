@@ -7,7 +7,7 @@ const fs = require('fs'),
    logger = pino({
       level: 'silent'
    })
-const { makeInMemoryStore, DisconnectReason, useSingleFileAuthState } = require('baileys')
+const { makeInMemoryStore, DisconnectReason, useSingleFileAuthState, fetchLatestBaileysVersion } = require('baileys')
 const { state,  saveState } = useSingleFileAuthState(path(__dirname, 'session.json'), logger)
 const { Socket, Serialize, Scandir } = require('./system/extra')
 global.Func = new (require('./system/function'))
@@ -66,10 +66,12 @@ const connect = async () => {
    }
 
    await commands()
+   const { version } = await fetchLatestBaileysVersion()
    global.client = Socket({
       logger,
       printQRInTerminal: true,
       auth: state,
+      version: global.wa_version || version,
       generateHighQualityLinkPreview: true
    })
 

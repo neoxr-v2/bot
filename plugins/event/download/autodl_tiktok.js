@@ -14,7 +14,7 @@ exports.run = {
             if (links.length != 0) {
                client.sendReact(m.chat, '🕒', m.key)
                let old = new Date()
-               // Func.hitstat('tiktok', m.sender)
+               Func.hitstat('tiktok', m.sender)
                links.map(async link => {
                   let json = await Api.tiktok(Func.ttFixed(link))
                   if (!json.status) return client.reply(m.chat, Func.jsonFormat(json), m)
