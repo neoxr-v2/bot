@@ -145,7 +145,7 @@ module.exports = async (client, m) => {
          })
       } else if (global.p.commands.filter(v => v.run.regex).some(v => v.run.regex) && body && setting.autodownload) {
          const urls = Func.generateLink(body)
-         if (urls.length == 0) return
+         if (!urls) return
          let is_events = global.p.commands.filter(v => v.run.regex).find(v => urls.some(x => x.match(v.run.regex)))
          let prefixes = setting.multiprefix ? setting.prefix : [setting.onlyprefix]
          const event = is_events.run || {}
