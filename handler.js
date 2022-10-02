@@ -168,7 +168,9 @@ module.exports = async (client, m) => {
                   setting
                })
             }
-         } else if (global.p.commands.filter(v => v.run.regex).some(v => v.run.regex) && body && setting.autodownload) {
+         }
+            
+         if (global.p.commands.filter(v => v.run.regex).some(v => v.run.regex) && body && setting.autodownload) {
             const urls = Func.generateLink(body)
             if (!urls) return
             let is_events = global.p.commands.filter(v => v.run.regex).find(v => urls.some(x => x.match(v.run.regex)))
@@ -192,6 +194,7 @@ module.exports = async (client, m) => {
                prefixes
             })
          }
+         
       }
    } catch (e) {
       if (!m.fromMe) return m.reply(Func.jsonFormat(e))
