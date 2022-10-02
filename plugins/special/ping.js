@@ -1,7 +1,7 @@
 exports.run = {
    usage: 'ping',
    hidden: ['pantek'],
-   category: 'main',
+   category: 'special',
    desc: '',
    use: '',
    async exec(m, { args }) {

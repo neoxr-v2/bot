@@ -1,7 +1,7 @@
 exports.run = {
    usage: 'checkapi',
    hidden: ['check'],
-   category: 'main',
+   category: 'special',
    async exec(m, {
       client
    }) {
