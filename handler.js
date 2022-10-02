@@ -174,11 +174,6 @@ module.exports = async (client, m) => {
          let is_obj = Object.fromEntries(tmp)
          for (let name in is_obj) {
             let event = is_obj[name].run
-            if (event.cache && event.location) {
-               let file = require.resolve(event.location)
-               Func.reload(file)
-            }
-            if (!m.isGroup && global.blocks.some(no => m.sender.startsWith(no))) return client.updateBlockStatus(m.sender, 'block')
             if (event.error) continue
             event.exec(m, {
                client,
