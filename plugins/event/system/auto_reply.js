@@ -5,7 +5,7 @@ exports.run = {
       body
    }) {
       try {
-         if (body) return m.reply('.')
+         if (body == 'bot') return m.reply('.')
       } catch (e) {
          console.log(e)
          return client.reply(m.chat, Func.jsonFormat(e), m)
