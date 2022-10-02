@@ -85,6 +85,7 @@ module.exports = async (client, m) => {
          let commands = is_usage.concat(is_alias)
          let matcher = Func.matcher(command, commands).filter(v => v.accuracy >= 60)
          let is_commands = global.p.commands.get(command) || global.p.commands.filter(v => v.run.usage).find(v => v.run.usage && v.run.usage == command) || global.p.commands.filter(v => v.run.hidden).find(v => v.run.hidden && v.run.hidden.some(v => v == command)) || global.p.commands.filter(v => v.run.alias).find(v => v.run.alias && v.run.alias.some(v => v == command))
+         if (is_commands) return
          try {
             if (new Date() * 1 - chats.command > (global.cooldown * 1000)) {
                chats.command = new Date() * 1
