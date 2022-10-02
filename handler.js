@@ -61,6 +61,10 @@ module.exports = async (client, m) => {
             groupSet.member[m.sender].lastseen = now
          }
       }
+      require('./system/exec')(client, m, isOwner)
+      const getPrefix = body ? body.charAt(0) : ''
+      const myPrefix = (setting.multiprefix ? setting.prefix.includes(getPrefix) : setting.onlyprefix == getPrefix) ? getPrefix : undefined
+      require('./system/logs')(client, m, myPrefix)
       if (((m.isGroup && !groupSet.mute) || !m.isGroup) && !users.banned) {
          if (body && body == myPrefix) {
             let old = new Date()
@@ -74,10 +78,6 @@ module.exports = async (client, m) => {
             }
          }
       }
-      require('./system/exec')(client, m, isOwner)
-      const getPrefix = body ? body.charAt(0) : ''
-      const myPrefix = (setting.multiprefix ? setting.prefix.includes(getPrefix) : setting.onlyprefix == getPrefix) ? getPrefix : undefined
-      require('./system/logs')(client, m, myPrefix)
       if (m.isBot || m.chat.endsWith('broadcast')) return
       let isPrefix
       if (body && body.length != 1 && (isPrefix = (myPrefix || '')[0])) {
