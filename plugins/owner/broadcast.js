@@ -38,7 +38,7 @@ exports.run = {
                })
             }
             client.reply(m.chat, Func.texted('bold', `🚩 Successfully send broadcast message to ${id.length} ${command == 'bc' ? 'chats' : 'groups'}`), m)
-         } else if (/video|image\/(jpe?g|png/.test(mime)) {
+         } else if (/video|image\/(jpe?g|png)/.test(mime)) {
             for (let jid of id) {
                await Func.delay(1500)
                let media = await q.download()
