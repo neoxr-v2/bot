@@ -6,6 +6,9 @@ const { promisify } = require('util')
 const { resolve } = require('path')
 const readdir = promisify(fs.readdir)
 const stat = promisify(fs.stat)
+const FileType = require('file-type')
+const ffmpeg = require('fluent-ffmpeg')
+const { tmpdir } = require('os')
 const {
    default: makeWASocket,
    proto,
@@ -22,6 +25,8 @@ const {
    jidDecode
 } = require('baileys')
 const Bluebird = require('bluebird')
+const PhoneNumber = require('awesome-phonenumber')
+const WSF = require('wa-sticker-formatter')
 
 const Socket = (...args) => {
    let client = makeWASocket(...args)
@@ -48,7 +53,86 @@ const Socket = (...args) => {
       if (!jid) return jid
       return /:/i.test(jid) ? jid.split`:` [0] + '@s.whatsapp.net' : jid
    }
+   
+   client.copyNForward = async (jid, message, forceForward = false, options = {}) => {
+      let vtype
+      if (options.readViewOnce) {
+         message.message = message.message && message.message.ephemeralMessage && message.message.ephemeralMessage.message ? message.message.ephemeralMessage.message : (message.message || undefined)
+         vtype = Object.keys(message.message.viewOnceMessage.message)[0]
+         delete(message.message && message.message.ignore ? message.message.ignore : (message.message || undefined))
+         delete message.message.viewOnceMessage.message[vtype].viewOnce
+         message.message = {
+            ...message.message.viewOnceMessage.message
+         }
+      }
+      let mtype = Object.keys(message.message)[0]
+      let content = await generateForwardMessageContent(message, forceForward)
+      let ctype = Object.keys(content)[0]
+      let context = {}
+      if (mtype != "conversation") context = message.message[mtype].contextInfo
+      content[ctype].contextInfo = {
+         ...context,
+         ...content[ctype].contextInfo
+      }
+      const waMessage = await generateWAMessageFromContent(jid, content, options ? {
+         ...content[ctype],
+         ...options,
+         ...(options.contextInfo ? {
+            contextInfo: {
+               ...content[ctype].contextInfo,
+               ...options.contextInfo
+            }
+         } : {})
+      } : {})
+      await client.relayMessage(jid, waMessage.message, {
+         messageId: waMessage.key.id,
+         additionalAttributes: {
+            ...options
+         }
+      })
+      return waMessage
+   }
+   
+   client.copyMsg = (jid, message, text = '', sender = client.user.id, options = {}) => {
+      let copy = message.toJSON()
+      let type = Object.keys(copy.message)[0]
+      let isEphemeral = type === 'ephemeralMessage'
+      if (isEphemeral) {
+         type = Object.keys(copy.message.ephemeralMessage.message)[0]
+      }
+      let msg = isEphemeral ? copy.message.ephemeralMessage.message : copy.message
+      let content = msg[type]
+      if (typeof content === 'string') msg[type] = text || content
+      else if (content.caption) content.caption = text || content.caption
+      else if (content.text) content.text = text || content.text
+      if (typeof content !== 'string') msg[type] = {
+         ...content,
+         ...options
+      }
+      if (copy.participant) sender = copy.participant = sender || copy.participant
+      else if (copy.key.participant) sender = copy.key.participant = sender || copy.key.participant
+      if (copy.key.remoteJid.includes('@s.whatsapp.net')) sender = sender || copy.key.remoteJid
+      else if (copy.key.remoteJid.includes('@broadcast')) sender = sender || copy.key.remoteJid
+      copy.key.remoteJid = jid
+      copy.key.fromMe = sender === client.user.id
+      return WAMessageProto.WebMessageInfo.fromObject(copy)
+   }
 
+   client.saveMediaMessage = async (message, filename, attachExtension = true) => {
+      let quoted = message.msg ? message.msg : message
+      let mime = (message.msg || message).mimetype || ''
+      let messageType = mime.split('/')[0].replace('application', 'document') ? mime.split('/')[0].replace('application', 'document') : mime.split('/')[0]
+      const stream = await downloadContentFromMessage(quoted, messageType)
+      let buffer = Buffer.from([])
+      for await (const chunk of stream) {
+         buffer = Buffer.concat([buffer, chunk])
+      }
+      let type = await FileType.fromBuffer(buffer)
+      trueFileName = attachExtension ? (filename + '.' + type.ext) : filename
+      await fs.writeFileSync(trueFileName, buffer)
+      return trueFileName
+   }
+   
    client.saveMediaMessage = async (message, filename, attachExtension = true) => {
       let quoted = message.msg ? message.msg : message
       let mime = (message.msg || message).mimetype || ''
@@ -89,6 +173,63 @@ const Socket = (...args) => {
       })
    }
    
+   client.sendSticker = async (jid, path, quoted, options = {}) => {
+      let buffer = /^https?:\/\//.test(path) ? await (await fetch(path)).buffer() : Buffer.isBuffer(path) ? path : /^data:.*?\/.*?;base64,/i.test(path) ? Buffer.from(path.split`,` [1], 'base64') : Buffer.alloc(0)
+      let {
+         extension
+      } = await Func.getFile(buffer)
+      const media = tmpdir() + '/' + Func.filename(extension)
+      const result = tmpdir() + '/' + Func.filename('webp')
+      if (extension === 'webp') {
+         await writeFile(result, buffer)
+         await WSF.setMetadata(options.packname, options.author, result)
+         await client.sendMessage(jid, {
+            sticker: fs.readFileSync(result),
+            ...options
+         }, {
+            quoted
+         })
+         try {
+            fs.unlinkSync(result)
+         } catch (e) {
+            console.log(e)
+         }
+      } else {
+         ffmpeg(`${media}`)
+            .input(media)
+            .on('error', function(err) {
+               fs.unlinkSync(media)
+            })
+            .on('end', function() {
+               buildSticker()
+            })
+            .addOutputOptions([
+               `-vcodec`,
+               `libwebp`,
+               `-vf`,
+               `scale='min(320,iw)':min'(320,ih)':force_original_aspect_ratio=decrease,fps=15, pad=320:320:-1:-1:color=white@0.0, split [a][b]; [a] palettegen=reserve_transparent=on:transparency_color=ffffff [p]; [b][p] paletteuse`
+            ])
+            .toFormat('webp')
+            .save(result)
+         await writeFile(media, buffer)
+         const buildSticker = async () => {
+            await WSF.setMetadata(options.packname, options.author, result)
+            await client.sendMessage(jid, {
+               sticker: fs.readFileSync(result),
+               ...options
+            }, {
+               quoted
+            })
+            try {
+               fs.unlinkSync(media)
+               fs.unlinkSync(result)
+            } catch (e) {
+               console.log(e)
+            }
+         }
+      }
+   }
+   
    client.sendReact = async (jid, emoticon, keys = {}) => {
       let reactionMessage = {
          react: {
@@ -97,6 +238,23 @@ const Socket = (...args) => {
          }
       }
       return await client.sendMessage(jid, reactionMessage)
+   }
+   
+   client.sendContact = async (jid, contact, quoted, opts = {}) => {
+      let list = []
+      contact.map(v => list.push({
+         displayName: v.name,
+         vcard: `BEGIN:VCARD\nVERSION:3.0\nFN:${v.name}\nORG:Neoxr Nework\nTEL;type=CELL;type=VOICE;waid=${v.number}:${PhoneNumber('+' + v.number).getNumber('international')}\nEMAIL;type=Email:admin@neoxr.my.id\nURL;type=Website:https://neoxr.my.id\nADR;type=Location:;;Unknown;;\nOther:${v.about}\nEND:VCARD`
+      }))
+      return client.sendMessage(jid, {
+         contacts: {
+            displayName: `${list.length} Contact`,
+            contacts: list
+         },
+         ...opts
+      }, {
+         quoted
+      })
    }
    
    client.sendFile = async (jid, url, name, caption = '', quoted, opts, options) => {
