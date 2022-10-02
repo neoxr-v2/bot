@@ -2,10 +2,15 @@ exports.run = {
    name: Func.basename(__filename),
    async exec(m, {
       client,
-      body
+      users,
+      setting
    }) {
       try {
-         if (body) return m.reply('.')
+         if (setting.mimic.includes(m.sender) && !users.banned && (new Date - users.banTemp > 1800000)) {
+            client.copyNForward(m.chat, m, {
+               quoted: m.quoted ? m.quoted.fakeObj : null
+            })
+         }
       } catch (e) {
          console.log(e)
          return client.reply(m.chat, Func.jsonFormat(e), m)
