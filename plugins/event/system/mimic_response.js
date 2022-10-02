@@ -2,7 +2,7 @@ exports.run = {
    name: Func.basename(__filename),
    async exec(m, {
       client,
-      body
+      body,
       users,
       setting
    }) {
