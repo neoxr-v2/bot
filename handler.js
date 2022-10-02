@@ -121,9 +121,12 @@ module.exports = async (client, m) => {
          let is_commands = global.p.commands.get(command) || global.p.commands.filter(v => v.run.usage).find(v => v.run.usage && v.run.usage == command) || global.p.commands.filter(v => v.run.hidden).find(v => v.run.hidden && v.run.hidden.some(v => v == command)) || global.p.commands.filter(v => v.run.alias).find(v => v.run.alias && v.run.alias.some(v => v == command))
          if (!is_commands) return
          const cmd = is_commands.run || {}
+         const plugin = Func.basename(cmd.location)
          if (body && global.evaluate_chars.some(v => body.startsWith(v)) && !body.startsWith(myPrefix)) return
          if (!m.isGroup && global.blocks.some(no => m.sender.startsWith(no))) return client.updateBlockStatus(m.sender, 'block')
          if (setting.self && !isOwner && !m.fromMe) return
+         if (['tiktok'].includes(plugin)) return m.reply('Sedang dinon aktifkan')
+         
          if (cmd.error) return client.reply(m.chat, global.status.errorF, m)
          if (cmd.owner && !isOwner) return client.reply(m.chat, global.status.owner, m)
          if (cmd.premium && !isPrem) return client.reply(m.chat, global.status.premium, m)
