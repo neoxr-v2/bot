@@ -22,7 +22,7 @@ global.Api = new (require('./neoxrApi'))(process.env.API_KEY)
 global.chatai_bid = '164728'
 global.chatai_key = 'MKPsfkgXLZPGrWoH'
 // Script version
-global.version = '2.3.5'
+global.version = '6.6.6'
 // WhatsApp Web version
 global.wa_version = ''
 // Footer text
