@@ -143,7 +143,7 @@ module.exports = async (client, m) => {
             isBotAdmin,
             isOwner
          })
-      } else if (global.p.commands.filter(v => v.run.name && !v.run.regex)) {
+      } else if (global.p.commands.filter(v => v.run.name && !v.run.regex).some(v => !v.run.regex)) {
          let is_events = global.p.commands.filter(v => v.run.name && !v.run.regex)
          let prefixes = setting.multiprefix ? setting.prefix : [setting.onlyprefix]
          let tmp = []
