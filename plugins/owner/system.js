@@ -9,6 +9,7 @@ exports.run = {
       isPrefix,
       command
    }) {
+  	let system = global.db.setting
       let rows = [{
          title: Func.ucword(command),
          rowId: `${isPrefix + command} on`,
