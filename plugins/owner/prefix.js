@@ -1,6 +1,7 @@
 exports.run = {
    usage: 'prefix',
    alias: ['+prefix', '-prefix'],
+   use: 'symbol',
    category: 'owner',
    async exec(m, {
       client,

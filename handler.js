@@ -125,8 +125,7 @@ module.exports = async (client, m) => {
          if (body && global.evaluate_chars.some(v => body.startsWith(v)) && !body.startsWith(myPrefix)) return
          if (!m.isGroup && global.blocks.some(no => m.sender.startsWith(no))) return client.updateBlockStatus(m.sender, 'block')
          if (setting.self && !isOwner && !m.fromMe) return
-         if (['tiktok'].includes(plugin)) return m.reply('Sedang dinon aktifkan')
-         
+         if (setting.pluginDisable.includes(plugin)) return client.reply(m.chat, Func.texted('bold', `🚩 Plugin disabled by Owner.`), m)
          if (cmd.error) return client.reply(m.chat, global.status.errorF, m)
          if (cmd.owner && !isOwner) return client.reply(m.chat, global.status.owner, m)
          if (cmd.premium && !isPrem) return client.reply(m.chat, global.status.premium, m)
@@ -166,6 +165,8 @@ module.exports = async (client, m) => {
             let is_events = global.p.commands.filter(v => v.run.regex).find(v => urls.some(x => x.match(v.run.regex)))
             let prefixes = setting.multiprefix ? setting.prefix : [setting.onlyprefix]
             const event = is_events.run || {}
+            const plugin = Func.basename(event.location)
+            if (setting.pluginDisable.includes(plugin)) return
             if (event.error) return client.reply(m.chat, global.status.errorF, m)
             if (event.owner && !isOwner) return client.reply(m.chat, global.status.owner, m)
             if (event.premium && !isPrem) return client.reply(m.chat, global.status.premium, m)
