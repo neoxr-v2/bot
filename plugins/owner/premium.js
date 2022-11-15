@@ -1,13 +1,12 @@
 exports.run = {
-   usage: '+prem',
-   alias: ['-prem'],
+   usage: ['+prem', '-prem'],
    use: 'mention or reply',
    category: 'owner',
-   async exec(m, {
+   async: async (m, {
       client,
       text,
       command
-   }) {
+   }) => {
       let number = isNaN(text) ? (text.startsWith('+') ? text.replace(/[()+\s-]/g, '') : (text).split`@` [1]) : text
       if (!text && !m.quoted) return client.reply(m.chat, Func.texted('bold', `🚩 Mention or reply chat target.`), m)
       if (isNaN(number)) return client.reply(m.chat, Func.texted('bold', `🚩 Invalid number.`), m)
@@ -21,19 +20,25 @@ exports.run = {
             var user = number + '@s.whatsapp.net'
          }
       } catch (e) {} finally {
-         let data = global.db.users[user]
+         let data = global.db.users.find(v => v.jid == user)
+         if (typeof data == 'undefined') return client.reply(m.chat, Func.texted('bold', `🚩 Can't find user data.`), m)
          if (command == '+prem') {
+            if (data.premium) return client.reply(m.chat, Func.texted('bold', `🚩 @${user.replace(/@.+/, '')} has become registered as a premium account.`), m)
             data.limit += 1000
             data.premium = true
+            data.expired = (new Date() * 1) + (86400000 * 30)
             client.reply(m.chat, Func.texted('bold', `🚩 Successfully added @${user.replace(/@.+/, '')} to premium user.`), m)
          } else if (command == '-prem') {
+            if (!data.premium) return client.reply(m.chat, Func.texted('bold', `🚩 Not a premium account.`), m)
             data.limit = global.limit
             data.premium = false
+            data.expired = 0
             client.reply(m.chat, Func.texted('bold', `🚩 @${user.replace(/@.+/, '')}'s premium status has been successfully deleted.`), m)
          }
       }
    },
    error: false,
    owner: true,
+   cache: true,
    location: __filename
 }

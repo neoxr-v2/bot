@@ -1,14 +1,13 @@
 exports.run = {
-   usage: '+owner',
-   alias: ['-owner'],
-   category: 'owner',
+   usage: ['+owner', '-owner'],
    use: 'mention or reply',
-   async exec(m, {
+   category: 'owner',
+   async: async (m, {
       client,
       text,
       isPrefix,
       command
-   }) {
+   }) => {
       let owners = global.db.setting.owners
       let number = isNaN(text) ? (text.startsWith('+') ? text.replace(/[()+\s-]/g, '') : (text).split`@` [1]) : text
       if (!text && !m.quoted) return client.reply(m.chat, Func.texted('bold', `🚩 Mention or Reply chat target.`), m)
@@ -36,7 +35,5 @@ exports.run = {
          }
       }
    },
-   error: false,
-   owner: true,
-   location: __filename
+   owner: true
 }

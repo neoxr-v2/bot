@@ -1,13 +1,13 @@
 // Owner number
-global.owner = '994408364923'
+global.owner = '6285887776722'
 // Owner name
-global.owner_name = 'Customer Service'
+global.owner_name = 'Manuk'
 // Maximum upload file size limit (Default : 50 MB)
-global.max_upload = 50
+global.max_upload = 200
 // Delay for spamming protection (Default : 3 seconds)
 global.cooldown = 3
 // User Limitation (Default : 25)
-global.limit = 25
+global.limit = 10
 // Time to be temporarily banned and others (Default : 30 minutes)
 global.timer = 1800000
 // Symbols that are excluded when adding a prefix (Don't change it)
@@ -15,16 +15,21 @@ global.evaluate_chars = ['=>', '~>', '<', '>', '$']
 // Country code that will be automatically blocked by the system, when sending messages in private chat
 global.blocks = ['91', '92', '212']
 // Put target jid to forward friends story
-global.forwards = '994408364923@c.us'
+global.forwards = '6285887776722@c.us'
 // Get neoxr apikey by registering at https://api.neoxr.my.id
 global.Api = new (require('./neoxrApi'))(process.env.API_KEY)
 // Get bid and key configuration for autoreply chat ai feature by registering at https://brainshop.ai
 global.chatai_bid = '164728'
 global.chatai_key = 'MKPsfkgXLZPGrWoH'
-// Script version
-global.version = '6.6.6'
-// WhatsApp Web version
-global.wa_version = ''
+// Min & Max for game reward
+global.min_reward = 10000
+global.max_reward = 500000
+// Timezone (Default : Asia/Jakarta)
+global.timezone = 'Asia/Jakarta'
+// Bot version
+global.version = '2.2.1',
+// Bot name
+global.botname = `© neoxr-bot v${global.version} (Public Bot)`
 // Footer text
 global.footer = 'ꜱɪᴍᴘʟᴇ ᴡʜᴀᴛꜱᴀᴘᴘ ʙᴏᴛ ᴍᴀᴅᴇ ʙʏ ɴᴇᴏxʀ ッ'
 // Global status
@@ -42,5 +47,8 @@ global.status = Object.freeze({
    group: Func.texted('bold', 'This command will only work in groups.'),
    botAdmin: Func.texted('bold', 'This command will work when I become an admin.'),
    admin: Func.texted('bold', 'This command only for group admin.'),
-   private: Func.texted('bold', 'Use this command in private chat.')
+   private: Func.texted('bold', 'Use this command in private chat.'),
+   gameSystem: Func.texted('bold', 'Game features have been disabled.'),
+   gameInGroup: Func.texted('bold', 'Game features have not been activated for this group.'),
+   gameLevel: Func.texted('bold', 'You cannot play the game because your level has reached the maximum limit.')
 })

@@ -1,14 +1,14 @@
 exports.run = {
-   usage: 'omute',
+   usage: ['omute'],
    use: '0 / 1',
    category: 'owner',
-   async exec(m, {
+   async: async (m, {
       client,
       args,
       isPrefix,
       command
-   }) {
-      let gc = global.db.groups[m.chat]
+   }) => {
+      let gc = global.db.groups.find(v => v.jid == m.chat)
       let opt = [0, 1]
       let rows = [{
          title: 'True',
@@ -30,8 +30,8 @@ exports.run = {
          client.reply(m.chat, Func.texted('bold', `🚩 Successfully unmuted.`), m)
       }
    },
-   error: false,
    owner: true,
    group: true,
+   cache: true,
    location: __filename
 }

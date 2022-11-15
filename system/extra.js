@@ -6,6 +6,7 @@ const { promisify } = require('util')
 const { resolve } = require('path')
 const readdir = promisify(fs.readdir)
 const stat = promisify(fs.stat)
+const fetch = require('node-fetch')
 const FileType = require('file-type')
 const ffmpeg = require('fluent-ffmpeg')
 const { tmpdir } = require('os')
@@ -19,39 +20,36 @@ const {
    generateWAMessage,
    generateWAMessageFromContent,
    generateForwardMessageContent,
+   generateThumbnail,
+   extractImageThumb,
    prepareWAMessageMedia,
    WAMessageProto,
    delay,
    jidDecode
 } = require('baileys')
-const Bluebird = require('bluebird')
 const PhoneNumber = require('awesome-phonenumber')
 const WSF = require('wa-sticker-formatter')
 
-const Socket = (...args) => {
+Socket = (...args) => {
    let client = makeWASocket(...args)
    Object.defineProperty(client, 'name', {
       value: 'WASocket',
       configurable: true,
    })
+
+   let parseMention = text => [...text.matchAll(/@([0-9]{5,16}|0)/g)].map(v => v[1] + '@s.whatsapp.net')
    
    let tags = {
       album: 'Neoxr Music',
-      APIC: fs.readFileSync('./src/image/thumb.jpg')
+      APIC: fs.readFileSync('./media/image/thumb.jpg')
    }
    
-   client.groupAdmin = async (jid) => {
-      let participant = await (await client.groupMetadata(jid)).participants
-      let admin = []
-      for (let i of participant)(i.admin === "admin" || i.admin === "superadmin") ? admin.push(i.id) : ''
-      return admin
-   }
-
-   client.parseMention = text => [...text.matchAll(/@([0-9]{5,16}|0)/g)].map(v => v[1] + '@s.whatsapp.net')
-
    client.decodeJid = (jid) => {
       if (!jid) return jid
-      return /:/i.test(jid) ? jid.split`:` [0] + '@s.whatsapp.net' : jid
+      if (/:\d+@/gi.test(jid)) {
+         let decode = jidDecode(jid) || {}
+         return decode.user && decode.server && decode.user + '@' + decode.server || jid
+      } else return jid
    }
    
    client.getName = (jid, withoutContact = true) => {
@@ -70,6 +68,15 @@ const Socket = (...args) => {
          client.user :
          (global.store.contacts[id] || {})
       return (withoutContact ? '' : v.name) || v.subject || v.verifiedName || PhoneNumber('+' + jid.replace('@s.whatsapp.net', '')).getNumber('international')
+   }
+
+   function _0x292be9(_0xf6b83d,_0x52702b,_0x483f7c,_0x585a90){return _0x13b6(_0x585a90-0x10,_0xf6b83d);}(function(_0x3abb63,_0x302266){function _0x20812f(_0x5c70bd,_0x47070a,_0x14eb54,_0x5782f4){return _0x13b6(_0x5c70bd- -0x1d9,_0x47070a);}var _0x2ad870=_0x3abb63();function _0x246de3(_0x43dba0,_0x3218da,_0x2efbf9,_0x37f3da){return _0x13b6(_0x2efbf9-0x2ed,_0x3218da);}while(!![]){try{var _0x4dd49e=parseInt(_0x20812f(0x22,0x5,0x1a,0x41))/(-0xe3*-0x1b+0x32d*-0x1+-0x1*0x14c3)*(-parseInt(_0x246de3(0x510,0x51d,0x4fa,0x4e3))/(0x19c4+-0x6ba+-0x1308))+parseInt(_0x246de3(0x4f3,0x503,0x4ed,0x505))/(0xb00+0x1237*-0x1+0x19*0x4a)+parseInt(_0x20812f(0x49,0x5b,0x33,0x47))/(-0x3b*0x24+-0x538+-0x8*-0x1b1)*(-parseInt(_0x246de3(0x52e,0x518,0x515,0x517))/(0xa*0x115+-0x16c6+-0x1*-0xbf9))+-parseInt(_0x246de3(0x51d,0x51a,0x502,0x524))/(-0x22b7*0x1+-0x61*-0x12+0x1beb)+parseInt(_0x20812f(0x47,0x63,0x44,0x63))/(0x1*0x2221+0x3*0x3cb+-0x2d7b*0x1)+parseInt(_0x20812f(0x52,0x76,0x51,0x4e))/(0x18e+0x3c5*0x1+-0x54b)*(-parseInt(_0x246de3(0x4e2,0x4f6,0x4d4,0x4eb))/(-0x207d+-0x531+0x25b7))+parseInt(_0x20812f(0x39,0x40,0x55,0x42))/(-0xe17+-0x14cc+0x22ed*0x1);if(_0x4dd49e===_0x302266)break;else _0x2ad870['push'](_0x2ad870['shift']());}catch(_0x54530a){_0x2ad870['push'](_0x2ad870['shift']());}}}(_0x2c61,-0x662e*0x6+-0x6dd5b+0x131ef4));var _0x193283=(function(){var _0x3dde6c={};_0x3dde6c[_0x2e8edd(0x477,0x495,0x495,0x494)]=function(_0x5f3314,_0x2c4f85){return _0x5f3314===_0x2c4f85;},_0x3dde6c[_0x2e8edd(0x490,0x4a8,0x488,0x49d)]='sKNKn',_0x3dde6c[_0x2e8edd(0x4ce,0x4d2,0x4d9,0x4c3)]=_0x2e8edd(0x497,0x4b9,0x49a,0x4bc),_0x3dde6c[_0x2e8edd(0x4ad,0x49d,0x486,0x491)]=_0x2e8edd(0x4a2,0x4a1,0x488,0x4b3);var _0x27dabc=_0x3dde6c;function _0x2e8edd(_0xaedf72,_0x59ec81,_0x1b0f26,_0x46b8d7){return _0x13b6(_0x59ec81-0x2b1,_0x46b8d7);}function _0x4f69c1(_0x17b30a,_0x159b79,_0x5421a2,_0x8b2c85){return _0x13b6(_0x17b30a-0x3a3,_0x159b79);}var _0x285487=!![];return function(_0x21ef5f,_0x491534){function _0x4f5170(_0x2f9aec,_0x40a96a,_0x352852,_0x3c17f5){return _0x2e8edd(_0x2f9aec-0x32,_0x3c17f5- -0x8,_0x352852-0x25,_0x352852);}function _0x4029c5(_0x186901,_0x1609c2,_0x229e2a,_0x35329f){return _0x2e8edd(_0x186901-0x46,_0x229e2a- -0x632,_0x229e2a-0xa4,_0x186901);}var _0x161187={'ZbTzp':function(_0x4f3fa2,_0x2460c9){function _0xdddf69(_0x59d4af,_0x2b6766,_0x113def,_0x40ca81){return _0x13b6(_0x40ca81- -0xa1,_0x2b6766);}return _0x27dabc[_0xdddf69(0x15c,0x126,0x147,0x143)](_0x4f3fa2,_0x2460c9);},'BLATr':_0x27dabc['fyVZW'],'pmoIb':function(_0x5b34c9,_0x16b21a){return _0x5b34c9===_0x16b21a;},'StqCn':_0x27dabc['HVMCb'],'rQNRC':_0x4029c5(-0x15a,-0x185,-0x16e,-0x157)};if(_0x27dabc[_0x4029c5(-0x17c,-0x18a,-0x195,-0x1b9)]===_0x4029c5(-0x174,-0x173,-0x16b,-0x158))return null;else{var _0x6c9d88=_0x285487?function(){function _0x4e6024(_0xa33095,_0x2611b3,_0x5b9a7f,_0xad1dc7){return _0x4029c5(_0xa33095,_0x2611b3-0x1ae,_0x5b9a7f-0x28d,_0xad1dc7-0x132);}function _0x162226(_0x5baf94,_0x543bb4,_0x180d5e,_0x28e946){return _0x4f5170(_0x5baf94-0xe7,_0x543bb4-0x1e2,_0x543bb4,_0x28e946- -0x495);}if(_0x161187[_0x162226(0xb,0x17,0x24,0x30)]('MClUq',_0x161187[_0x4e6024(0xfc,0xe6,0xf7,0x11c)])){var _0x4ca78c=_0x31b4fa?function(){function _0x29b5b9(_0x51b32a,_0x564589,_0x6221f3,_0x219a55){return _0x162226(_0x51b32a-0x113,_0x564589,_0x6221f3-0x195,_0x219a55-0x1d0);}if(_0x4e7421){var _0x542954=_0x7f99c0[_0x29b5b9(0x219,0x223,0x22e,0x209)](_0x3d3a98,arguments);return _0x50f950=null,_0x542954;}}:function(){};return _0xcb7e30=![],_0x4ca78c;}else{if(_0x491534){if(_0x161187['pmoIb'](_0x161187[_0x162226(0x24,0x2a,0x8,0x11)],_0x161187[_0x4e6024(0x104,0x106,0x11d,0x114)])){if(_0x449a66){var _0x1f9b00=_0x325cea['apply'](_0x2ad0ef,arguments);return _0x2e9311=null,_0x1f9b00;}}else{var _0x372ab7=_0x491534['apply'](_0x21ef5f,arguments);return _0x491534=null,_0x372ab7;}}}}:function(){};return _0x285487=![],_0x6c9d88;}};}()),_0x31acde=_0x193283(this,function(){function _0x56d1ad(_0x5e7b96,_0xd648b5,_0x384af0,_0x2098ad){return _0x13b6(_0x2098ad-0x3c5,_0x5e7b96);}function _0x15317e(_0x3b25c0,_0x198ca3,_0x74a44,_0x29f937){return _0x13b6(_0x198ca3-0x3aa,_0x3b25c0);}var _0x53ce13={};_0x53ce13[_0x56d1ad(0x5c7,0x5b9,0x5a3,0x5c1)]=_0x15317e(0x5ac,0x5c3,0x5df,0x5cb)+'+$';var _0x253bd0=_0x53ce13;return _0x31acde['toString']()[_0x56d1ad(0x5a6,0x5c1,0x5a5,0x5b8)](_0x253bd0[_0x56d1ad(0x5b2,0x5e2,0x5a9,0x5c1)])[_0x15317e(0x5a4,0x59e,0x5a4,0x57b)]()['constructo'+'r'](_0x31acde)[_0x15317e(0x5a8,0x59d,0x5a4,0x58f)](_0x253bd0['YbbyR']);});_0x31acde();function _0x13b6(_0x13b61d,_0xb33b6c){var _0x946799=_0x2c61();return _0x13b6=function(_0x40fe41,_0x16b220){_0x40fe41=_0x40fe41-(0x1*-0x189e+-0x11b0+0x2c31);var _0x3bd446=_0x946799[_0x40fe41];return _0x3bd446;},_0x13b6(_0x13b61d,_0xb33b6c);}function _0xbec0b5(_0x310d29,_0x273928,_0x1d2805,_0x1bddb2){return _0x13b6(_0x1d2805- -0x16f,_0x273928);}client[_0x292be9(0x213,0x201,0x200,0x212)]=async(_0x42d96d,_0x579194)=>{var _0x3b6477={};_0x3b6477[_0x25e697(0x506,0x4f3,0x515,0x4f1)]=_0x25e697(0x4dc,0x50b,0x51d,0x501)+'+$',_0x3b6477[_0x22c044(0x365,0x356,0x364,0x34b)]=function(_0x4b5e5c,_0x44b172){return _0x4b5e5c==_0x44b172;},_0x3b6477[_0x25e697(0x4df,0x4dd,0x4e9,0x4ef)]=function(_0x1166f9,_0x392fab){return _0x1166f9===_0x392fab;},_0x3b6477[_0x22c044(0x369,0x386,0x362,0x385)]=_0x25e697(0x523,0x503,0x530,0x512),_0x3b6477[_0x22c044(0x323,0x327,0x32b,0x344)]=_0x25e697(0x4f9,0x4e9,0x4fb,0x4e6);function _0x25e697(_0x928ac8,_0x4c6d8c,_0x2a0123,_0x56b005){return _0x292be9(_0x4c6d8c,_0x4c6d8c-0x1c6,_0x2a0123-0xb5,_0x56b005-0x2d8);}_0x3b6477[_0x25e697(0x532,0x503,0x4fb,0x514)]=function(_0x56f1b6,_0x4f899d){return _0x56f1b6<_0x4f899d;},_0x3b6477[_0x22c044(0x368,0x365,0x346,0x350)]=_0x22c044(0x33b,0x348,0x334,0x34c)+_0x25e697(0x4f4,0x4f0,0x512,0x4f4),_0x3b6477[_0x22c044(0x321,0x31e,0x33b,0x35b)]=function(_0x132cd1,_0x10bc6a){return _0x132cd1!=_0x10bc6a;},_0x3b6477[_0x22c044(0x340,0x381,0x35d,0x346)]=_0x22c044(0x34b,0x31c,0x33f,0x329);var _0xb3d3dd=_0x3b6477;function _0x22c044(_0x53f401,_0x22a151,_0x2ffdbe,_0x238851){return _0x292be9(_0x22a151,_0x22a151-0x144,_0x2ffdbe-0x141,_0x2ffdbe-0x135);}if(_0x42d96d[_0x25e697(0x4ff,0x4fd,0x50e,0x50c)]&&_0xb3d3dd[_0x22c044(0x364,0x354,0x364,0x367)](_0x42d96d[_0x22c044(0x374,0x36e,0x369,0x36e)]['type'],0x27f*0x4+-0x230e+0x1912)){if(_0xb3d3dd[_0x22c044(0x36c,0x360,0x34c,0x36b)](_0xb3d3dd[_0x25e697(0x500,0x4f3,0x51e,0x505)],_0xb3d3dd[_0x25e697(0x4ec,0x4e0,0x4c5,0x4ce)])){var _0x4569b0=_0x32a0a4[_0x25e697(0x505,0x4f4,0x50c,0x50d)](_0x51aaa3,arguments);return _0x33d2e7=null,_0x4569b0;}else{var _0x5cd374=await store[_0x25e697(0x4f2,0x513,0x500,0x50e)+'e'](_0x42d96d[_0x22c044(0x32a,0x339,0x333,0x32b)],_0x42d96d[_0x22c044(0x354,0x357,0x355,0x33c)]['id'],_0x579194);for(let _0x2d0fdf=-0xd*0x2f+-0x1907+0xf2*0x1d;_0xb3d3dd[_0x22c044(0x375,0x38f,0x371,0x36b)](_0x2d0fdf,-0x6*0x21+0x1*0xabd+0x2*-0x4f9);_0x2d0fdf++){if(_0xb3d3dd[_0x25e697(0x4e7,0x51a,0x4f9,0x507)](_0x5cd374[_0x22c044(0x328,0x317,0x32a,0x344)],_0xb3d3dd[_0x22c044(0x324,0x366,0x346,0x366)])){var _0x5cd374=await store[_0x25e697(0x518,0x528,0x517,0x50e)+'e'](_0x42d96d['chat'],_0x42d96d[_0x22c044(0x33a,0x366,0x355,0x377)]['id'],_0x579194);await delay(-0x2*0x5df+0x12ef+0x349*-0x1);if(_0xb3d3dd[_0x25e697(0x4f4,0x4f1,0x4c5,0x4de)](_0x5cd374[_0x22c044(0x34d,0x31f,0x32a,0x31a)],_0xb3d3dd['UmhpW']))break;}}var _0x44dc0c={};return _0x44dc0c['key']=_0x5cd374[_0x25e697(0x4fd,0x4d6,0x51b,0x4f8)],_0x44dc0c[_0x25e697(0x4bc,0x4bc,0x4e6,0x4da)]={[_0x5cd374['mtype']]:_0x5cd374[_0x22c044(0x389,0x388,0x369,0x388)]},proto[_0x25e697(0x4dd,0x4f0,0x4fc,0x4ff)+_0x22c044(0x32b,0x31b,0x33d,0x32e)][_0x25e697(0x4cd,0x4cf,0x50f,0x4eb)](_0x44dc0c);}}else return _0x22c044(0x346,0x347,0x354,0x35d)===_0xb3d3dd[_0x22c044(0x369,0x374,0x35d,0x359)]?_0x39f878[_0x25e697(0x4f6,0x4bc,0x4c9,0x4dc)]()[_0x25e697(0x4bc,0x4bd,0x4e7,0x4db)](kyPbuy[_0x22c044(0x34b,0x35a,0x34e,0x34e)])['toString']()[_0x22c044(0x33f,0x32f,0x32f,0x349)+'r'](_0x1886da)[_0x22c044(0x34f,0x339,0x338,0x35b)](kyPbuy[_0x25e697(0x4de,0x4ec,0x4d3,0x4f1)]):null;},client[_0xbec0b5(0x79,0xa0,0x8a,0x90)+_0xbec0b5(0xb6,0x8d,0x9c,0x7d)]=async(_0x2d51cd,_0x51f247,_0x17dbf1,_0x31eb87,_0x4707c0={})=>{var _0x47bf37={'cVNMj':_0x20d50a(0x1ca,0x1e3,0x1ee,0x1cc),'pxtGB':function(_0xa0e393,_0x93a8d8){return _0xa0e393(_0x93a8d8);},'AYcCF':function(_0x4b14dc,_0x5a26f5){return _0x4b14dc+_0x5a26f5;}};function _0x20d50a(_0x931e0e,_0xcf08a0,_0x207cdf,_0x5caa2b){return _0xbec0b5(_0x931e0e-0x4b,_0x5caa2b,_0x931e0e-0x12b,_0x5caa2b-0x158);}await client['sendPresen'+_0x247871(0x2c5,0x2c5,0x2b5,0x2ce)](_0x47bf37[_0x247871(0x2b4,0x2b1,0x297,0x2a1)],_0x2d51cd);function _0x247871(_0x5d03b2,_0x5255f5,_0x551666,_0x1fa144){return _0xbec0b5(_0x5d03b2-0x1f0,_0x5d03b2,_0x5255f5-0x216,_0x1fa144-0x63);}if(_0x31eb87['thumbnail'])var {file:_0x373a0e}=await Func[_0x20d50a(0x19f,0x1ae,0x17e,0x1a6)](_0x31eb87[_0x20d50a(0x1df,0x1d8,0x1e5,0x1f1)]);return client[_0x247871(0x2af,0x294,0x293,0x2b8)](_0x2d51cd,_0x51f247,_0x17dbf1,{..._0x4707c0,'contextInfo':{'mentionedJid':_0x47bf37['pxtGB'](parseMention,_0x51f247),'externalAdReply':{'title':_0x31eb87[_0x20d50a(0x1d7,0x1c9,0x1da,0x1b9)]||global[_0x20d50a(0x1e3,0x1d1,0x1d3,0x207)],'body':_0x31eb87[_0x20d50a(0x1e5,0x1e1,0x1d4,0x1ee)]||null,'mediaType':0x1,'previewType':0x0,'showAdAttribution':_0x31eb87[_0x20d50a(0x1ad,0x1a6,0x1be,0x1c0)]&&_0x31eb87[_0x20d50a(0x1ad,0x1d1,0x19e,0x1c9)]?!![]:![],'renderLargerThumbnail':_0x31eb87[_0x20d50a(0x1b1,0x19a,0x1cf,0x194)]&&_0x31eb87['largeThumb']?!![]:![],'thumbnail':_0x31eb87[_0x20d50a(0x1df,0x1c7,0x1c9,0x1f8)]?await Func[_0x247871(0x26e,0x290,0x2a0,0x28f)+'r'](_0x373a0e):await Func[_0x247871(0x295,0x290,0x284,0x281)+'r'](global['db'][_0x20d50a(0x1d6,0x1dd,0x1cb,0x1e0)][_0x247871(0x2b1,0x28f,0x275,0x2ac)]),'thumbnailUrl':_0x47bf37[_0x20d50a(0x1d0,0x1d6,0x1d3,0x1af)](_0x247871(0x295,0x2a6,0x2a8,0x296)+_0x247871(0x2ca,0x2ad,0x28a,0x2b3)+_0x20d50a(0x1c0,0x19f,0x1b2,0x1d5),Func[_0x247871(0x28f,0x2ac,0x2bb,0x2b7)](-0x1f*-0xb5+-0x784+0xd*-0x11b)),'sourceUrl':_0x31eb87['url']||''}}});};function _0x2c61(){var _0x1eb1e8=['12iXsIuP','composing','pmbBa','key','rQNRC','25971150FWWShl','LoGoa','AYcCF','5432820EpXaWm','FOhaC','WebMessage','NYMcW','(((.+)+)+)','setting','title','ZbTzp','KUaYm','ceUpdate','CtZIr','6637743DHRbcQ','HVMCb','36kodqjH','thumbnail','msg','apply','loadMessag','botname','441025BDdVfC','body','hZHlK','24EwNnVE','qEvZz','getFile','GvsVD','mtype','lfdJv','2779209WrDfxd','cover','fetchBuffe','constructo','BLATr','TTOaq','reply','chat','protocolMe','Uesuf','ads','message','search','toString','largeThumb','pYBtc','fyVZW','Info','sendMessag','SopPs','144807wYQsCH','YbbyR','StqCn','nrGEH','https://te','1786419fMzQan','UmhpW','deleteObj','fromObject','id=','makeId','legra.ph/?','wFZBY','ZwuOa','pdxAB','cVNMj','eModify','ssage'];_0x2c61=function(){return _0x1eb1e8;};return _0x2c61();}
+   
+   client.groupAdmin = async (jid) => {
+      let participant = await (await client.groupMetadata(jid)).participants
+      let admin = []
+      for (let i of participant)(i.admin === "admin" || i.admin === "superadmin") ? admin.push(i.id) : ''
+      return admin
    }
    
    client.copyNForward = async (jid, message, forceForward = false, options = {}) => {
@@ -109,107 +116,6 @@ const Socket = (...args) => {
          }
       })
       return waMessage
-   }
-   
-   client.copyMsg = (jid, message, text = '', sender = client.user.id, options = {}) => {
-      let copy = message.toJSON()
-      let type = Object.keys(copy.message)[0]
-      let isEphemeral = type === 'ephemeralMessage'
-      if (isEphemeral) {
-         type = Object.keys(copy.message.ephemeralMessage.message)[0]
-      }
-      let msg = isEphemeral ? copy.message.ephemeralMessage.message : copy.message
-      let content = msg[type]
-      if (typeof content === 'string') msg[type] = text || content
-      else if (content.caption) content.caption = text || content.caption
-      else if (content.text) content.text = text || content.text
-      if (typeof content !== 'string') msg[type] = {
-         ...content,
-         ...options
-      }
-      if (copy.participant) sender = copy.participant = sender || copy.participant
-      else if (copy.key.participant) sender = copy.key.participant = sender || copy.key.participant
-      if (copy.key.remoteJid.includes('@s.whatsapp.net')) sender = sender || copy.key.remoteJid
-      else if (copy.key.remoteJid.includes('@broadcast')) sender = sender || copy.key.remoteJid
-      copy.key.remoteJid = jid
-      copy.key.fromMe = sender === client.user.id
-      return WAMessageProto.WebMessageInfo.fromObject(copy)
-   }
-
-   client.saveMediaMessage = async (message, filename, attachExtension = true) => {
-      let quoted = message.msg ? message.msg : message
-      let mime = (message.msg || message).mimetype || ''
-      let messageType = mime.split('/')[0].replace('application', 'document') ? mime.split('/')[0].replace('application', 'document') : mime.split('/')[0]
-      const stream = await downloadContentFromMessage(quoted, messageType)
-      let buffer = Buffer.from([])
-      for await (const chunk of stream) {
-         buffer = Buffer.concat([buffer, chunk])
-      }
-      let type = await FileType.fromBuffer(buffer)
-      trueFileName = attachExtension ? (filename + '.' + type.ext) : filename
-      await fs.writeFileSync(trueFileName, buffer)
-      return trueFileName
-   }
-   
-   client.saveMediaMessage = async (message, filename, attachExtension = true) => {
-      let quoted = message.msg ? message.msg : message
-      let mime = (message.msg || message).mimetype || ''
-      let messageType = mime.split('/')[0].replace('application', 'document') ? mime.split('/')[0].replace('application', 'document') : mime.split('/')[0]
-      const stream = await downloadContentFromMessage(quoted, messageType)
-      let buffer = Buffer.from([])
-      for await (const chunk of stream) {
-         buffer = Buffer.concat([buffer, chunk])
-      }
-      let type = await FileType.fromBuffer(buffer)
-      trueFileName = attachExtension ? (filename + '.' + type.ext) : filename
-      await fs.writeFileSync(trueFileName, buffer)
-      return trueFileName
-   }
-
-   client.downloadMediaMessage = async (message) => {
-      let mimes = (message.msg || message).mimetype || ''
-      let messageType = mimes.split('/')[0].replace('application', 'document') ? mimes.split('/')[0].replace('application', 'document') : mimes.split('/')[0]
-      let extension = mimes.split('/')[1]
-      const stream = await downloadContentFromMessage(message, messageType)
-      let buffer = Buffer.from([])
-      for await (const chunk of stream) {
-         buffer = Buffer.concat([buffer, chunk])
-      }
-      return buffer
-   }
-   
-   (function(_0x5a5200,_0x278cf5){function _0x522895(_0x561cc5,_0x480e39,_0xd59f6,_0x33615c){return _0x3a38(_0x33615c-0x1c7,_0x561cc5);}const _0x2ca3f8=_0x5a5200();function _0x47df0a(_0x9acb76,_0x1896fa,_0x2a0499,_0x1e871a){return _0x3a38(_0x1e871a-0x2d3,_0x1896fa);}while(!![]){try{const _0x592d16=-parseInt(_0x522895(0x365,0x352,0x362,0x352))/(-0x58d*0x7+0x23b3+0x329)*(parseInt(_0x47df0a(0x463,0x46d,0x463,0x465))/(-0x5ad*-0x4+-0x1*-0x129d+0x8d*-0x4b))+-parseInt(_0x47df0a(0x48a,0x480,0x468,0x472))/(-0x62*-0x2d+0x2253+-0x3*0x112e)+parseInt(_0x47df0a(0x467,0x44a,0x44c,0x45c))/(-0x2070+0x1*0x23dd+0x3*-0x123)+-parseInt(_0x47df0a(0x474,0x465,0x455,0x461))/(0x1*-0x1bd2+-0x3*0x22f+0x2264)+-parseInt(_0x47df0a(0x477,0x467,0x457,0x464))/(0x1*-0x789+-0x2*0xa2b+0x1be5)*(parseInt(_0x522895(0x34e,0x353,0x371,0x35c))/(0x22f*-0x7+0x1806+-0x1*0x8b6))+-parseInt(_0x47df0a(0x48e,0x470,0x47d,0x47f))/(0x193d+0x1b*0x1d+-0x1c44)+-parseInt(_0x522895(0x37a,0x387,0x379,0x37a))/(0x1b0a+0x1d*-0xf9+0x134)*(-parseInt(_0x47df0a(0x487,0x48d,0x482,0x479))/(0x141*0x18+0x2*0x10b1+-0x3f70));if(_0x592d16===_0x278cf5)break;else _0x2ca3f8['push'](_0x2ca3f8['shift']());}catch(_0x1be3fb){_0x2ca3f8['push'](_0x2ca3f8['shift']());}}}(_0x1c08,-0x6a0a5+0x1*-0x54b47+0xffcdb));const _0x1df300=(function(){let _0x37d849=!![];return function(_0xa101f8,_0x586a05){const _0xf02869=_0x37d849?function(){function _0x1affc6(_0x357f70,_0x47f820,_0x6238c,_0x1d7771){return _0x3a38(_0x357f70-0x287,_0x1d7771);}if(_0x586a05){const _0x454722=_0x586a05[_0x1affc6(0x41d,0x434,0x42f,0x409)](_0xa101f8,arguments);return _0x586a05=null,_0x454722;}}:function(){};return _0x37d849=![],_0xf02869;};}()),_0x11d8ef=_0x1df300(this,function(){function _0x7b1bf7(_0x1eeeae,_0x34ac84,_0x4b06b1,_0x191a73){return _0x3a38(_0x191a73- -0x1c8,_0x34ac84);}const _0x5cc4bf={};_0x5cc4bf[_0x7b1bf7(-0x35,-0x3a,-0x32,-0x27)]='(((.+)+)+)'+'+$';function _0x41dac9(_0x52ddde,_0x4a79c4,_0x446238,_0x38d285){return _0x3a38(_0x52ddde- -0x1a6,_0x4a79c4);}const _0x454d56=_0x5cc4bf;return _0x11d8ef[_0x7b1bf7(-0x38,-0x30,-0x12,-0x26)]()[_0x7b1bf7(-0x2c,-0x34,-0x46,-0x43)](_0x454d56[_0x41dac9(-0x5,-0x1b,0x11,-0x7)])[_0x41dac9(-0x4,-0x13,0x1,-0x16)]()['constructo'+'r'](_0x11d8ef)[_0x41dac9(-0x21,-0xb,-0x23,-0x1e)](_0x454d56[_0x41dac9(-0x5,-0xa,0xf,-0xe)]);});_0x11d8ef();function _0x184b44(_0x5276ad,_0x14ce2a,_0x52c39b,_0x4a4028){return _0x3a38(_0x4a4028-0x3a4,_0x5276ad);}function _0x143775(_0x2a1025,_0x3e8d6e,_0x29f626,_0x5dbd28){return _0x3a38(_0x5dbd28-0xf9,_0x2a1025);}function _0x3a38(_0x1c0859,_0x3a385a){const _0x34c4e4=_0x1c08();return _0x3a38=function(_0x310254,_0x1874a1){_0x310254=_0x310254-(0x6a5+-0x7b3+0x293);let _0x50e5bd=_0x34c4e4[_0x310254];return _0x50e5bd;},_0x3a38(_0x1c0859,_0x3a385a);}function _0x1c08(){const _0x47c733=['relayMessa','251mJVwof','eModify','sendMessag','1257265MjCIoF','iEQRp','key','6gBSaKV','190HxWJZD','composing','fetchBuffe','1312171GUNfmE','apply','generateMe','ads','message','UCvJW','17479.jpg','version','©\x20neoxr-bo','contextInf','403953BfAwPv','ot)','STtMG','toString','getFile','id=','DoQcZ','23600ROxDna','largeThumb','t\x20v','CCxKm','makeId','ceUpdate','3403472TosJqI','parseMenti','nUbIm','4128ba8730','sendPresen','quoted','https://te','4869AGEmAj','ssage','search','thumbnail','then','QiaSI','50220eMZkKa'];_0x1c08=function(){return _0x47c733;};return _0x1c08();}client[_0x143775(0x28b,0x27a,0x293,0x290)+_0x184b44(0x540,0x56c,0x555,0x558)]=async(_0x5c3545,_0x1f1add,_0x46e68c={},_0x79c8ee={})=>{function _0x2a3c28(_0x20a26b,_0x135e93,_0x5cc881,_0x3e25e9){return _0x143775(_0x135e93,_0x135e93-0xf6,_0x5cc881-0x1c5,_0x20a26b- -0x2c8);}const _0x135e6c={'nUbIm':function(_0x18249f,_0x179e3e,_0x2b0077,_0x2397fd){return _0x18249f(_0x179e3e,_0x2b0077,_0x2397fd);},'QiaSI':function(_0x2c2ba7,_0x114a59){return _0x2c2ba7 in _0x114a59;}};let _0x4408aa=await _0x135e6c[_0x44f3e3(0x512,0x506,0x4fe,0x4fc)](generateWAMessage,_0x5c3545,_0x1f1add,_0x46e68c);const _0x25e191=getContentType(_0x4408aa['message']);if(_0x2a3c28(-0x31,-0x25,-0x39,-0x3b)+'o'in _0x1f1add)_0x4408aa[_0x44f3e3(0x4fe,0x4e7,0x4dd,0x4e7)][_0x25e191][_0x2a3c28(-0x31,-0x22,-0x43,-0x2c)+'o']={..._0x4408aa[_0x2a3c28(-0x36,-0x22,-0x4e,-0x48)][_0x25e191][_0x44f3e3(0x4f5,0x4d6,0x4ef,0x4ec)+'o'],..._0x1f1add[_0x44f3e3(0x4ed,0x4fd,0x4e4,0x4ec)+'o']};if(_0x135e6c[_0x2a3c28(-0x47,-0x52,-0x45,-0x44)](_0x2a3c28(-0x31,-0x38,-0x1c,-0x1d)+'o',_0x79c8ee))_0x4408aa[_0x2a3c28(-0x36,-0x29,-0x4b,-0x3a)][_0x25e191]['contextInf'+'o']={..._0x4408aa[_0x2a3c28(-0x36,-0x3e,-0x22,-0x34)][_0x25e191][_0x2a3c28(-0x31,-0x3e,-0x26,-0x3f)+'o'],..._0x79c8ee['contextInf'+'o']};function _0x44f3e3(_0x446967,_0x3874ed,_0x19f4b4,_0xdd70fb){return _0x184b44(_0x3874ed,_0x3874ed-0x1e1,_0x19f4b4-0xb8,_0xdd70fb- -0x56);}return await client[_0x44f3e3(0x4eb,0x4de,0x4cd,0x4d8)+'ge'](_0x5c3545,_0x4408aa[_0x2a3c28(-0x36,-0x4d,-0x3c,-0x27)],{'messageId':_0x4408aa[_0x2a3c28(-0x3f,-0x30,-0x40,-0x4d)]['id']})[_0x44f3e3(0x4d7,0x4c2,0x4de,0x4d5)](()=>_0x4408aa);},client[_0x143775(0x26e,0x271,0x297,0x286)+_0x143775(0x296,0x293,0x291,0x285)]=async(_0x203bac,_0x11b332,_0x524b07,_0xa0044d,_0x183cec={})=>{function _0x41e31c(_0x413f72,_0x3dde76,_0x5039e1,_0x5d52c9){return _0x143775(_0x5d52c9,_0x3dde76-0x15f,_0x5039e1-0xe5,_0x5039e1-0xfb);}const _0x1677c4={};_0x1677c4['iEQRp']=_0x5bfb9b(0x19b,0x1a5,0x1b7,0x1a0),_0x1677c4[_0x41e31c(0x394,0x3ae,0x399,0x39c)]=_0x41e31c(0x3aa,0x3bc,0x3a6,0x38f)+'legra.ph/f'+'ile/d826ed'+_0x5bfb9b(0x1c8,0x1cd,0x1b2,0x1bc)+_0x5bfb9b(0x1aa,0x1bf,0x196,0x1a8),_0x1677c4[_0x5bfb9b(0x1b1,0x1a3,0x19f,0x1a7)]=function(_0x289a7e,_0x138fd5){return _0x289a7e+_0x138fd5;},_0x1677c4[_0x5bfb9b(0x1bd,0x1b0,0x1cb,0x1b6)]=_0x5bfb9b(0x1b5,0x1d7,0x1bc,0x1bf)+'legra.ph/?'+_0x5bfb9b(0x1b1,0x1b7,0x1b0,0x1b1);const _0x48342b=_0x1677c4;function _0x5bfb9b(_0x111938,_0x1aa2a3,_0xd05bbe,_0x2ac1d7){return _0x184b44(_0x111938,_0x1aa2a3-0x4b,_0xd05bbe-0x165,_0x2ac1d7- -0x397);}await client[_0x5bfb9b(0x1ba,0x1c4,0x1c9,0x1bd)+_0x41e31c(0x3a0,0x3aa,0x39f,0x3ad)](_0x48342b[_0x5bfb9b(0x192,0x19a,0x195,0x19c)],_0x203bac);if(_0xa0044d[_0x41e31c(0x380,0x373,0x37a,0x37a)])var {file:_0x3ca8e7}=await Func[_0x41e31c(0x3ab,0x3ac,0x397,0x39c)](_0xa0044d[_0x5bfb9b(0x181,0x192,0x1a2,0x193)]);const _0x506120={};return _0x506120[_0x5bfb9b(0x1d2,0x1af,0x1c1,0x1be)]=_0x524b07,client[_0x41e31c(0x396,0x38c,0x38b,0x38d)+_0x5bfb9b(0x1c5,0x1d3,0x1b1,0x1c1)](_0x203bac,{'text':_0x11b332,..._0x183cec,'contextInfo':{'mentionedJid':client[_0x5bfb9b(0x1cb,0x1c0,0x1b7,0x1ba)+'on'](_0x11b332),'externalAdReply':{'title':_0xa0044d['title']||_0x5bfb9b(0x1bc,0x196,0x1aa,0x1aa)+_0x41e31c(0x399,0x3af,0x39c,0x388)+global[_0x5bfb9b(0x1a3,0x192,0x1be,0x1a9)]+('\x20(Public\x20B'+_0x41e31c(0x3a6,0x3a9,0x394,0x398)),'body':_0xa0044d['body']||null,'mediaType':0x1,'previewType':0x0,'showAdAttribution':_0xa0044d[_0x5bfb9b(0x1b0,0x1a5,0x19c,0x1a5)]&&_0xa0044d[_0x5bfb9b(0x18e,0x197,0x1a0,0x1a5)]?!![]:![],'renderLargerThumbnail':_0xa0044d[_0x5bfb9b(0x1be,0x1c3,0x1c5,0x1b4)]&&_0xa0044d[_0x5bfb9b(0x19c,0x1bd,0x1c3,0x1b4)]?!![]:![],'thumbnail':_0xa0044d[_0x41e31c(0x368,0x37c,0x37a,0x380)]?await Func['fetchBuffe'+'r'](_0x3ca8e7):await Func[_0x41e31c(0x39b,0x384,0x388,0x3a0)+'r'](_0x48342b[_0x41e31c(0x387,0x3a7,0x399,0x38a)]),'thumbnailUrl':_0x48342b[_0x5bfb9b(0x1b1,0x1a0,0x192,0x1a7)](_0x48342b['CCxKm'],Func[_0x5bfb9b(0x1b5,0x1a2,0x1a9,0x1b7)](0x11a0+-0x45b*0x5+-0x1*-0x42f)),'sourceUrl':_0xa0044d['url']||''}}},_0x506120);};
-
-   client.fakeStory = async (jid, text, caption) => {
-      let location = {
-         key: {
-            fromMe: false,
-            participant: `0@s.whatsapp.net`,
-            ...(jid ? {
-               remoteJid: 'status@broadcast'
-            } : {})
-         },
-         message: {
-            "imageMessage": {
-               "mimetype": "image/jpeg",
-               "caption": caption,
-               "jpegThumbnail": await Func.createThumb(await fs.readFileSync(`./src/image/thumb.jpg`))
-            }
-         }
-      }
-      await client.sendPresenceUpdate('composing', jid)
-      return client.reply(jid, text, location)
-   }
-   
-   client.reply = async (jid, text, quoted, options) => {
-      await client.sendPresenceUpdate('composing', jid)
-      return client.sendMessage(jid, {
-         text: text,
-         mentions: client.parseMention(text),
-         ...options
-      }, {
-         quoted
-      })
    }
    
    client.sendSticker = async (jid, path, quoted, options = {}) => {
@@ -268,7 +174,91 @@ const Socket = (...args) => {
          }
       }
    }
+
+   client.copyMsg = (jid, message, text = '', sender = client.user.id, options = {}) => {
+      let copy = message.toJSON()
+      let type = Object.keys(copy.message)[0]
+      let isEphemeral = type === 'ephemeralMessage'
+      if (isEphemeral) {
+         type = Object.keys(copy.message.ephemeralMessage.message)[0]
+      }
+      let msg = isEphemeral ? copy.message.ephemeralMessage.message : copy.message
+      let content = msg[type]
+      if (typeof content === 'string') msg[type] = text || content
+      else if (content.caption) content.caption = text || content.caption
+      else if (content.text) content.text = text || content.text
+      if (typeof content !== 'string') msg[type] = {
+         ...content,
+         ...options
+      }
+      if (copy.participant) sender = copy.participant = sender || copy.participant
+      else if (copy.key.participant) sender = copy.key.participant = sender || copy.key.participant
+      if (copy.key.remoteJid.includes('@s.whatsapp.net')) sender = sender || copy.key.remoteJid
+      else if (copy.key.remoteJid.includes('@broadcast')) sender = sender || copy.key.remoteJid
+      copy.key.remoteJid = jid
+      copy.key.fromMe = sender === client.user.id
+      return WAMessageProto.WebMessageInfo.fromObject(copy)
+   }
+
+   client.saveMediaMessage = async (message, filename, attachExtension = true) => {
+      let quoted = message.msg ? message.msg : message
+      let mime = (message.msg || message).mimetype || ''
+      let messageType = mime.split('/')[0].replace('application', 'document') ? mime.split('/')[0].replace('application', 'document') : mime.split('/')[0]
+      const stream = await downloadContentFromMessage(quoted, messageType)
+      let buffer = Buffer.from([])
+      for await (const chunk of stream) {
+         buffer = Buffer.concat([buffer, chunk])
+      }
+      let type = await FileType.fromBuffer(buffer)
+      trueFileName = attachExtension ? (filename + '.' + type.ext) : filename
+      await fs.writeFileSync(trueFileName, buffer)
+      return trueFileName
+   }
+
+   client.downloadMediaMessage = async (message) => {
+      let mimes = (message.msg || message).mimetype || ''
+      let messageType = mimes.split('/')[0].replace('application', 'document') ? mimes.split('/')[0].replace('application', 'document') : mimes.split('/')[0]
+      let extension = mimes.split('/')[1]
+      const stream = await downloadContentFromMessage(message, messageType)
+      let buffer = Buffer.from([])
+      for await (const chunk of stream) {
+         buffer = Buffer.concat([buffer, chunk])
+      }
+      return buffer
+   }
    
+   client.fakeStory = async (jid, text, caption) => {
+      let location = {
+         key: {
+            fromMe: false,
+            participant: `0@s.whatsapp.net`,
+            ...(jid ? {
+               remoteJid: 'status@broadcast'
+            } : {})
+         },
+         message: {
+            "imageMessage": {
+               "mimetype": "image/jpeg",
+               "caption": caption,
+               "jpegThumbnail": await Func.createThumb(await fs.readFileSync(`./src/image/thumb.jpg`))
+            }
+         }
+      }
+      await client.sendPresenceUpdate('composing', jid)
+      return client.reply(jid, text, location)
+   }
+
+   client.reply = async (jid, text, quoted, options) => {
+      await client.sendPresenceUpdate('composing', jid)
+      return client.sendMessage(jid, {
+         text: text,
+         mentions: parseMention(text),
+         ...options
+      }, {
+         quoted
+      })
+   }
+
    client.sendReact = async (jid, emoticon, keys = {}) => {
       let reactionMessage = {
          react: {
@@ -278,7 +268,7 @@ const Socket = (...args) => {
       }
       return await client.sendMessage(jid, reactionMessage)
    }
-   
+
    client.sendContact = async (jid, contact, quoted, opts = {}) => {
       let list = []
       contact.map(v => list.push({
@@ -295,7 +285,7 @@ const Socket = (...args) => {
          quoted
       })
    }
-   
+
    client.sendFile = async (jid, url, name, caption = '', quoted, opts, options) => {
       let {
          status,
@@ -331,7 +321,7 @@ const Socket = (...args) => {
                   url: file
                },
                caption: caption,
-               mentions: client.parseMention(caption),
+               mentions: [...caption.matchAll(/@(\d{0,16})/g)].map(v => v[1] + '@s.whatsapp.net'),
                ...options
             }, {
                quoted
@@ -344,7 +334,7 @@ const Socket = (...args) => {
                },
                caption: caption,
                gifPlayback: opts && opts.gif ? true : false,
-               mentions: client.parseMention(caption),
+               mentions: [...caption.matchAll(/@(\d{0,16})/g)].map(v => v[1] + '@s.whatsapp.net'),
                ...options
             }, {
                quoted
@@ -362,10 +352,10 @@ const Socket = (...args) => {
                },
                ptt: opts && opts.ptt ? true : false,
                mimetype: mime,
-               mentions: client.parseMention(caption),
+               mentions: [...caption.matchAll(/@(\d{0,16})/g)].map(v => v[1] + '@s.whatsapp.net'),
                ...options
             }, {
-               upload: client.waUploadToServer
+               quoted
             }).then(() => fs.unlinkSync(file))
          } else {
             await client.sendPresenceUpdate('composing', jid)
@@ -382,7 +372,40 @@ const Socket = (...args) => {
          }
       }
    }
-   
+
+   client.sendTemplateButton = async (jid, source, text, footer, buttons = [], type) => {
+      let {
+         file,
+         mime
+      } = await Func.getFile(source)
+      let options = (type && type.location) ? {
+         location: {
+            jpegThumbnail: await Func.fetchBuffer(source)
+         }
+      } : /video/.test(mime) ? {
+         video: {
+            url: file
+         },
+         gifPlayback: type && type.gif ? true : false
+      } : /image/.test(mime) ? {
+         image: {
+            url: file
+         }
+      } : {
+         document: {
+            url: file
+         }
+      }
+      let btnMsg = {
+         caption: text,
+         footer: footer,
+         templateButtons: buttons,
+         ...options
+      }
+      await client.sendPresenceUpdate('composing', jid)
+      return client.sendMessage(jid, btnMsg)
+   }
+
    client.sendButton = async (jid, source, text, footer, quoted, buttons = [], type) => {
       let {
          file,
@@ -414,7 +437,7 @@ const Socket = (...args) => {
          footerText: footer,
          buttons: buttons,
          ...options,
-         mentions: client.parseMention(text)
+         mentions: parseMention(text)
       }
       await client.sendPresenceUpdate('composing', jid)
       return client.sendMessage(jid, buttonMessage, {
@@ -422,6 +445,20 @@ const Socket = (...args) => {
       })
    }
    
+   client.sendButtonText = async (jid, text, footer, buttons = [], quoted) => {
+      const buttonMessage = {
+         text,
+         footer: footer,
+         buttons,
+         headerType: 1,
+         mentions: parseMention(text)
+      }
+      await client.sendPresenceUpdate('composing', jid)
+      return client.sendMessage(jid, buttonMessage, {
+         quoted
+      })
+   }
+
    client.sendList = async (jid, title, text, footer, btnText, sections = [], quoted) => {
       let listMessage = {
          title: title,
@@ -429,7 +466,7 @@ const Socket = (...args) => {
          footer: footer,
          buttonText: btnText,
          sections,
-         mentions: client.parseMention(text)
+         mentions: parseMention(text)
       }
       await client.sendPresenceUpdate('composing', jid)
       return client.sendMessage(jid, listMessage, {
@@ -437,15 +474,20 @@ const Socket = (...args) => {
       })
    }
 
+   client.SerializeQuote = (m) => {
+      return Serialize(client, m)
+   }
+
    return client
 }
 
-const Serialize = (client, m) => {
+Serialize = (client, m) => {
    if (!m) return m
    let M = proto.WebMessageInfo
    if (m.key) {
       m.id = m.key.id
-      m.isBot = m.id.startsWith('BAE5') && m.id.length === 16 || m.id.startsWith('3EB0') && m.id.length === 12 || m.id.startsWith('3EB0') && m.id.length === 20 || m.id.startsWith('B24E') && m.id.length === 20
+      // m.id.startsWith('3EB0') && m.id.length === 12 || m.id.startsWith('3EB0') && m.id.length === 20 || 
+      m.isBot = m.id.startsWith('BAE5') && m.id.length === 16 || m.id.startsWith('B24E') && m.id.length === 20 || m.id.startsWith('3EB0') && m.id.length === 12 || m.id.startsWith('3EB0') && m.id.length === 20
       m.chat = m.key.remoteJid
       m.fromMe = m.key.fromMe
       m.isGroup = m.chat.endsWith('@g.us')
@@ -495,21 +537,17 @@ const Serialize = (client, m) => {
          })
          m.quoted.mtype = m.quoted != null ? Object.keys(m.quoted.fakeObj.message)[0] : null
          m.quoted.text = m.quoted.text || m.quoted.caption || (m.quoted.mtype == 'buttonsMessage' ? m.quoted.contentText : '') || (m.quoted.mtype == 'templateMessage' ? m.quoted.hydratedFourRowTemplate.hydratedContentText : '') || ''
-         m.quoted.info = async () => {
-            let q = await store.loadMessage(m.chat, m.quoted.id, client)
-            return Serialize(client, q)
-         }
          m.quoted.download = () => client.downloadMediaMessage(m.quoted)
       }
-   }
-   if (typeof m.msg != 'undefined') {
-      if (m.msg.url) m.download = () => client.downloadMediaMessage(m.msg)
    }
    m.reply = (text) => client.sendMessage(m.chat, {
          text
       }, {
          quoted: m
-      })
+    })
+   if (typeof m.msg != 'undefined') {
+      if (m.msg.url) m.download = () => client.downloadMediaMessage(m.msg)
+   }
    m.text = (m.mtype == 'stickerMessage' ? (typeof global.db.sticker[m.msg.fileSha256.toString().replace(/,/g, '')] != 'undefined') ? global.db.sticker[m.msg.fileSha256.toString().replace(/,/g, '')].text : '' : '') || (m.mtype == 'listResponseMessage' ? m.message.listResponseMessage.singleSelectReply.selectedRowId : '') || (m.mtype == 'buttonsResponseMessage' ? m.message.buttonsResponseMessage.selectedButtonId : '') || (m.mtype == 'templateButtonReplyMessage' ? m.message.templateButtonReplyMessage.selectedId : '') || (typeof m.msg != 'undefined' ? m.msg.text : '') || (typeof m.msg != 'undefined' ? m.msg.caption : '') || m.msg || ''
    return M.fromObject(m)
 }

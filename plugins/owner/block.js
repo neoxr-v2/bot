@@ -1,14 +1,14 @@
 exports.run = {
-   usage: 'block',
-   alias: ['unblock'],
+   usage: ['block', 'unblock'],
    use: 'mention or reply',
    category: 'owner',
-   async exec(m, {
+   async: async (m, {
       client,
       text,
+      isPrefix,
       command,
       participants
-   }) {
+   }) => {
       let number = isNaN(text) ? (text.startsWith('+') ? text.replace(/[()+\s-]/g, '') : (text).split`@` [1]) : text
       if (!text && !m.quoted) return client.reply(m.chat, Func.texted('bold', `🚩 Mention or Reply chat target.`), m)
       if (isNaN(number)) return client.reply(m.chat, Func.texted('bold', `🚩 Invalid number.`), m)
@@ -29,7 +29,5 @@ exports.run = {
          if (command == 'unblock') return client.updateBlockStatus(user, 'unblock')
       }
    },
-   error: false,
-   owner: true,
-   location: __filename
+   owner: true
 }

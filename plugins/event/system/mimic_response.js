@@ -1,14 +1,14 @@
 exports.run = {
-   name: Func.basename(__filename),
-   async exec(m, {
+   async: async (m, {
       client,
-      body,
       users,
       setting
-   }) {
+   }) => {
       try {
          if (setting.mimic.includes(m.sender) && !users.banned && (new Date - users.banTemp > 1800000)) {
-            client.copyNForward(m.chat, m)
+            client.copyNForward(m.chat, m, {
+               quoted: m.quoted ? m.quoted.fakeObj : null
+            })
          }
       } catch (e) {
          console.log(e)
@@ -16,5 +16,6 @@ exports.run = {
       }
    },
    error: false,
+   cache: true,
    location: __filename
 }

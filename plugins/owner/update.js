@@ -1,11 +1,11 @@
 const { execSync } = require('child_process')
 exports.run = {
-   usage: 'update',
+   usage: ['update'],
    hidden: ['upt'],
    category: 'owner',
-   async exec(m, {
+   async: async (m, {
       client
-   }) {
+   }) => {
       try {
          var stdout = execSync('git pull')
          var output = stdout.toString()
@@ -25,7 +25,7 @@ exports.run = {
          return client.reply(m.chat, Func.jsonFormat(e), m)
       }
    },
-   error: false,
    owner: true,
+   cache: true,
    location: __filename
 }

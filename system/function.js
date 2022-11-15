@@ -10,7 +10,7 @@ const { fromBuffer } = require('file-type')
 const { green, blueBright, redBright } = require('chalk')
 const { tmpdir } = require('os')
 const moment = require('moment-timezone')
-moment.tz.setDefault('Asia/Jakarta').locale('id')
+moment.tz.setDefault(global.timezone)
 const NodeID3 = require('node-id3')
 const {
    read,
@@ -24,6 +24,21 @@ module.exports = class Function {
     * @param {Integer} time
     */
    delay = time => new Promise(res => setTimeout(res, time))
+
+   /* Image Resizer for Thumbnail
+    * @param {String|Buffer} source
+    */
+   createThumb = async (source) => {
+      let {
+         file
+      } = await this.getFile(source)
+      let jimp = await read(await this.fetchBuffer(file))
+      let buff = await jimp
+         .quality(100)
+         .resize(200, AUTO, RESIZE_BILINEAR)
+         .getBufferAsync(MIME_JPEG)
+      return buff
+   }
 
    /* URL Validator
     * @param {String} url
@@ -57,22 +72,7 @@ module.exports = class Function {
          }
       })
    }
-  
-   /* Image Resizer for Thumbnail
-    * @param {String|Buffer} source
-    */
-   createThumb = async (source) => {
-      let {
-         file
-      } = await this.getFile(source)
-      let jimp = await read(await this.fetchBuffer(file))
-      let buff = await jimp
-         .quality(100)
-         .resize(200, AUTO, RESIZE_BILINEAR)
-         .getBufferAsync(MIME_JPEG)
-      return buff
-   }
-   
+
    /* Audio Metadata
     * @param {String|Buffer} source
     * @param {Object} tags 
@@ -192,6 +192,16 @@ module.exports = class Function {
    random = (list) => {
       return list[Math.floor(Math.random() * list.length)]
    }
+   
+   /* Random Number
+    * @param {Integer} min
+    * @param {Integer} max
+    */
+   randomInt = (min, max) => {
+      min = Math.ceil(min)
+      max = Math.floor(max)
+      return Math.floor(Math.random() * (max - min + 1)) + min
+   }
 
    /* Format Number \w Dot
     * @param {Integer} integer
@@ -199,6 +209,16 @@ module.exports = class Function {
    formatNumber = (integer) => {
       let numb = parseInt(integer)
       return Number(numb).toLocaleString().replace(/,/g, '.')
+   }
+
+   /* H2K Format
+    * @param {Integer} integer
+    */
+   h2k = (integer) => {
+      let numb = parseInt(integer)
+      return new Intl.NumberFormat('en-US', {
+         notation: 'compact'
+      }).format(numb)
    }
 
    /* To Readable Size
@@ -586,14 +606,14 @@ module.exports = class Function {
       if (hours == parseInt('00')) return minutes + ':' + seconds
       return hours + ':' + minutes + ':' + seconds
    }
-   
+
    switcher = (status, isTrue, isFalse) => {
       return (status) ? this.texted('bold', isTrue) : this.texted('bold', isFalse)
    }
-   
+
    /* Random ID
     * @param {Integer} length
-    */ 
+    */
    makeId = (length) => {
       var result = ''
       var characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
@@ -603,11 +623,58 @@ module.exports = class Function {
       }
       return result
    }
+
+   /* Timeout
+    * @param {Integer} ms
+    */
+   timeReverse = (duration) => {
+      let milliseconds = parseInt((duration % 1000) / 100),
+         seconds = Math.floor((duration / 1000) % 60),
+         minutes = Math.floor((duration / (1000 * 60)) % 60),
+         hours = Math.floor((duration / (1000 * 60 * 60)) % 24),
+         days = Math.floor(duration / (24 * 60 * 60 * 1000))
+      let hoursF = (hours < 10) ? "0" + hours : hours
+      let minutesF = (minutes < 10) ? "0" + minutes : minutes
+      let secondsF = (seconds < 10) ? "0" + seconds : seconds
+      let daysF = (days < 10) ? "0" + days : days
+      // return hours + " Jam " + minutes + " Menit" + seconds + " Detik" + milliseconds;
+      return daysF + "D " + hoursF + "H " + minutesF + "M"
+   }
+
+   /* Timeout
+    * @param ()
+    */
+   greeting = () => {
+      let time = moment.tz(global.timezone).format('HH')
+      let res = `Don't forget to sleep`
+      if (time >= 3) res = `Good Evening`
+      if (time > 6) res = `Good Morning`
+      if (time >= 11) res = `Good Afternoon`
+      if (time >= 18) res = `Good Night`
+      return res
+   }
    
-   /* Get Basename From Path
-    * @param {String} path
-    */ 
-   basename = (dir) => {
-   	return path.parse(dir).name
+   /* Leveling
+    * @param {Integer} ms
+    */
+   level = (xp) => {
+      var XPAsli = xp
+      var level = 1
+      while (xp > 1) {
+         xp /= 2
+         if (xp < 1) {
+            level == level
+         } else {
+            level += 1
+         }
+      }
+      var XPLevel = 1
+      while (XPAsli >= XPLevel) {
+         XPLevel = XPLevel + XPLevel
+      }
+      var sisaXP = XPLevel - XPAsli
+      if (sisaXP == 0) sisaXP = XPLevel + XPLevel
+      let kurang = XPLevel - sisaXP
+      return [level, XPLevel, sisaXP, kurang]
    }
 }

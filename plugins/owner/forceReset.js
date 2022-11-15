@@ -1,17 +1,19 @@
 exports.run = {
-   usage: 'reset',
+   usage: ['reset'],
    category: 'owner',
-   async exec(m, {
-      client
-   }) {
+   async: async (m, {
+      client,
+      args,
+      command
+   }) => {
       try {
-         Object.entries(global.db.users).filter(([jid, data]) => !data.premium).map(([jid, data]) => data.limit = global.limit)
+         global.db.users.filter(v => v.limit < global.limit && !v.premium).map(v => v.limit = args[0] ? args[0] : global.limit)
          client.reply(m.chat, Func.texted('bold', `🚩 Successfully reset limit for user free to default.`), m)
       } catch (e) {
          return client.reply(m.chat, Func.jsonFormat(e), m)
       }
    },
-   error: false,
    owner: true,
+   cache: true,
    location: __filename
 }

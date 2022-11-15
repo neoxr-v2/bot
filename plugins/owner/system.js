@@ -1,15 +1,14 @@
 exports.run = {
-   usage: 'autodownload',
-   alias: ['chatbot', 'debug', 'groupmode', 'multiprefix', 'online', 'self'],
+   usage: ['autodownload', 'chatbot', 'debug', 'games', 'groupmode', 'multiprefix', 'online', 'self'],
    use: 'on / off',
    category: 'owner',
-   async exec(m, {
+   async: async (m, {
       client,
       args,
       isPrefix,
       command
-   }) {
-  	let system = global.db.setting
+   }) => {
+      let system = global.db.setting
       let rows = [{
          title: Func.ucword(command),
          rowId: `${isPrefix + command} on`,
@@ -34,5 +33,6 @@ exports.run = {
       client.reply(m.chat, Func.texted('bold', `🚩 ${Func.ucword(command)} has been ${option == 'on' ? 'activated' : 'inactivated'} successfully.`), m)
    },
    owner: true,
+   cache: true,
    location: __filename
 }

@@ -1,17 +1,23 @@
 exports.run = {
-   name: Func.basename(__filename),
    regex: /^(?:https?:\/\/)?(?:www\.)?(?:instagram\.com\/)(?:tv\/|p\/|reel\/)(?:\S+)?$/,
-   async exec(m, {
+   async: async (m, {
       client,
       body,
-      prefixes
-   }) {
+      users,
+      setting
+   }) => {
       try {
          const regex = /^(?:https?:\/\/)?(?:www\.)?(?:instagram\.com\/)(?:tv\/|p\/|reel\/)(?:\S+)?$/;
          const extract = body ? Func.generateLink(body) : null
          if (extract) {
             const links = extract.filter(v => Func.igFixed(v).match(regex))
             if (links.length != 0) {
+               if (users.limit > 0) {
+                  let limit = 1
+                  if (users.limit >= limit) {
+                     users.limit -= limit
+                  } else return client.reply(m.chat, Func.texted('bold', `🚩 Your limit is not enough to use this feature.`), m)
+               }
                client.sendReact(m.chat, '🕒', m.key)
                let old = new Date()
                Func.hitstat('ig', m.sender)
@@ -29,7 +35,6 @@ exports.run = {
          return client.reply(m.chat, Func.jsonFormat(e), m)
       }
    },
-   error: false,
    limit: true,
-   location: __filename
+   download: true
 }

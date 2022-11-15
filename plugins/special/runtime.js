@@ -1,14 +1,13 @@
 exports.run = {
-   usage: 'runtime',
+   usage: ['runtime'],
    hidden: ['run'],
    category: 'special',
-   async exec(m, {
+   async: async (m, {
       client
-   }) {
+   }) => {
       let _uptime = process.uptime() * 1000
       let uptime = Func.toTime(_uptime)
       client.reply(m.chat, Func.texted('bold', `Running for : [ ${uptime} ]`), m)
    },
-   error: false,
-   location: __filename
+   error: false
 }

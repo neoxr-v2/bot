@@ -1,13 +1,12 @@
 exports.run = {
-   usage: 'bc',
-   alias: ['bcgc'],
+   usage: ['bc', 'bcgc'],
    use: 'text or reply media',
    category: 'owner',
-   async exec(m, {
+   async: async (m, {
       client,
       text,
       command
-   }) {
+   }) => {
       try {
          let q = m.quoted ? m.quoted : m
          let mime = (q.msg || q).mimetype || ''
@@ -16,13 +15,15 @@ exports.run = {
          let groupJid = await (await groupList()).map(v => v.id)
          const id = command == 'bc' ? chatJid : groupJid
          if (id.length == 0) return client.reply(m.chat, Func.texted('bold', `🚩 Error, ID does not exist.`), m)
+         client.sendReact(m.chat, '🕒', m.key)
          if (text) {
             for (let jid of id) {
                await Func.delay(1500)
                await client.sendMessageModify(jid, text, null, {
+                  title: global.botname,
                   thumbnail: await Func.fetchBuffer('https://telegra.ph/file/aa76cce9a61dc6f91f55a.jpg'),
                   largeThumb: true,
-                  url: 'https://chat.whatsapp.com/Dh1USlrqIfmJT6Ji0Pm2pP',
+                  url: global.db.setting.link,
                   mentionedJid: command == 'bcgc' ? await (await client.groupMetadata(jid)).participants.map(v => v.id) : []
                })
             }
@@ -55,7 +56,5 @@ exports.run = {
          client.reply(m.chat, Func.jsonFormat(e), m)
       }
    },
-   error: false,
-   owner: true,
-   location: __filename
+   owner: true
 }

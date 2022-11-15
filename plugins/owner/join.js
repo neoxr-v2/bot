@@ -1,13 +1,13 @@
 exports.run = {
-   usage: 'join',
+   usage: ['join'],
    use: 'group link',
    category: 'owner',
-   async exec(m, {
+   async: async (m, {
       client,
       args,
       isPrefix,
       command
-   }) {
+   }) => {
       try {
          if (!args || !args[0]) return client.reply(m.chat, Func.example(isPrefix, command, 'https://chat.whatsapp.com/codeInvite'), m)
          let link = /chat.whatsapp.com\/([0-9A-Za-z]{20,24})/i
@@ -21,7 +21,5 @@ exports.run = {
          return client.reply(m.chat, Func.texted('bold', `🚩 Sorry i can't join to this group :(`), m)
       }
    },
-   error: false,
-   owner: true,
-   location: __filename
+   owner: true
 }

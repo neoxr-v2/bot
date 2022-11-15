@@ -60,19 +60,9 @@ module.exports = class NeoxrApi {
       let json = await Func.fetchJson(this.baseUrl + '/soundcloud?url=' + url + '&apikey=' + this.apiKey)
       return json
    }
-
-   emojimix = async (emo) => {
-      let json = await Func.fetchJson(this.baseUrl + '/emoji?q=' + encodeURIComponent(emo) + '&apikey=' + this.apiKey)
-      return json
-   }
    
    rexdl = async (str) => {
       let json = str.match('rexdl.com') ? await Func.fetchJson(this.baseUrl + '/rexdl-get?url=' + str + '&apikey=' + this.apiKey) : await Func.fetchJson(this.baseUrl + '/rexdl?q=' + encodeURIComponent(str) + '&apikey=' + this.apiKey)
-      return json
-   }
-   
-   sticker = async (str) => {
-      let json = str.match('getstickerpack.com') ? await Func.fetchJson(this.baseUrl + '/sticker-get?url=' + str + '&apikey=' + this.apiKey) : await Func.fetchJson(this.baseUrl + '/sticker?q=' + encodeURIComponent(str) + '&apikey=' + this.apiKey)
       return json
    }
    
@@ -81,23 +71,23 @@ module.exports = class NeoxrApi {
       return json
    }
    
+   soundcloud = async (str) => {
+      let json = str.match('soundcloud.com') ? await Func.fetchJson(this.baseUrl + '/soundcloud?url=' + str + '&apikey=' + this.apiKey) : await Func.fetchJson(this.baseUrl + '/soundcloud-search?q=' + str + '&apikey=' + this.apiKey)
+      return json
+   }
+   
+   apk = async (query, no) => {
+      if (query && no) {
+         let json = await Func.fetchJson(this.baseUrl + '/apk?q=' + query + '&no=' + no + '&apikey=' + this.apiKey)
+         return json
+      } else if (query) {
+         let json = await Func.fetchJson(this.baseUrl + '/apk?q=' + query + '&apikey=' + this.apiKey)
+         return json
+      }
+   }
+   
    emojimix = async (emoticon) => {
-  	let json = await Func.fetchJson(this.baseUrl + '/emoji?q=' + emoticon + '&apikey=' + this.apiKey)
-      return json
-   }
-   
-   drakor = async (str) => {
-      let json = str.match('drakorasia.us') ? await Func.fetchJson(this.baseUrl + '/drakor-get?url=' + str + '&apikey=' + this.apiKey) : await Func.fetchJson(this.baseUrl + '/drakor?q=' + str + '&apikey=' + this.apiKey)
-      return json
-   }
-   
-   anime = async (str) => {
-      let json = str.match('62.182.83.93') ? await Func.fetchJson(this.baseUrl + '/anime-get?url=' + str + '&apikey=' + this.apiKey) : await Func.fetchJson(this.baseUrl + '/anime?q=' + str + '&apikey=' + this.apiKey)
-      return json
-   }
-   
-   film = async (str) => {
-      let json = str.match('167.99.64.64') ? await Func.fetchJson(this.baseUrl + '/film-get?url=' + str + '&apikey=' + this.apiKey) : await Func.fetchJson(this.baseUrl + '/film?q=' + str + '&apikey=' + this.apiKey)
+  	let json = await Func.fetchJson(this.baseUrl + '/emoji?q=' + encodeURI(emoticon) + '&apikey=' + this.apiKey)
       return json
    }
    
@@ -106,12 +96,51 @@ module.exports = class NeoxrApi {
       return json
    }
    
-   textMaker = (style, text) => {  
+   sticker = async (str) => {
+      let json = str.match('getstickerpack.com') ? await Func.fetchJson(this.baseUrl + '/sticker-get?url=' + str + '&apikey=' + this.apiKey) : await Func.fetchJson(this.baseUrl + '/sticker?q=' + encodeURIComponent(str) + '&apikey=' + this.apiKey)
+      return json
+   }
+   
+   tm = (style, text) => {  
       return this.baseUrl + '/' + style + '?text=' + text + '&apikey=' + this.apiKey
    }
    
-   soundcloud = async (str) => {
-      let json = str.match('soundcloud.com') ? await Func.fetchJson(this.baseUrl + '/soundcloud?url=' + str + '&apikey=' + this.apiKey) : await Func.fetchJson(this.baseUrl + '/soundcloud-search?q=' + str + '&apikey=' + this.apiKey)
+   ie = (style, image) => {
+      return this.baseUrl + '/effect?style=' + style + '&image=' + image + '&apikey=' + this.apiKey
+   }
+   
+   brainly = async (query, lang) => {
+  	let json = await Func.fetchJson(this.baseUrl + '/brainly?q=' + query + '&iso=' + lang + '&apikey=' + this.apiKey)
+      return json
+   }
+   
+   sholat = async (city) => {
+      let json = await Func.fetchJson(this.baseUrl + '/sholat?q=' + city + '&apikey=' + this.apiKey)
+      return json
+   }
+   
+   kbbg = async (query) => {
+      let json = await Func.fetchJson(this.baseUrl + '/kbbg?q=' + query + '&apikey=' + this.apiKey)
+      return json
+   }
+   
+   chord = async (query) => {
+      let json = await Func.fetchJson(this.baseUrl + '/chord?q=' + query + '&apikey=' + this.apiKey)
+      return json
+   }
+   
+   lyric = async (query) => {
+      let json = await Func.fetchJson(this.baseUrl + '/lyric?q=' + query + '&apikey=' + this.apiKey)
+      return json
+   }
+   
+   igstalk = async (username) => {
+      let json = await Func.fetchJson(this.baseUrl + '/igstalk?username=' + username + '&apikey=' + this.apiKey)
+      return json
+   }
+   
+   google = async (query, image = false) => {
+      let json = await Func.fetchJson(this.baseUrl + '/' + (image ? 'goimg' : 'google') + '?q=' + query + '&apikey=' + this.apiKey)
       return json
    }
 }

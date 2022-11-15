@@ -1,6 +1,5 @@
 exports.run = {
-   name: Func.basename(__filename),
-   async exec(m, {
+   async: async (m, {
       client,
       users,
       chats,
@@ -8,7 +7,7 @@ exports.run = {
       isBotAdmin,
       isOwner,
       groupSet
-   }) {
+   }) => {
       try {
          let unban = new Date(users.banTemp + global.timer)
          if (new Date - users.banTemp > global.timer) {
@@ -47,5 +46,6 @@ exports.run = {
       }
    },
    error: false,
+   cache: true,
    location: __filename
 }

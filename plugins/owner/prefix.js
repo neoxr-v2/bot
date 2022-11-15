@@ -1,14 +1,13 @@
 exports.run = {
-   usage: 'prefix',
-   alias: ['+prefix', '-prefix'],
+   usage: ['prefix', '+prefix', '-prefix'],
    use: 'symbol',
    category: 'owner',
-   async exec(m, {
+   async: async (m, {
       client,
       args,
       isPrefix,
       command
-   }) {
+   }) => {
       let system = global.db.setting
       if (command == 'prefix') {
          if (!args || !args[0]) return client.reply(m.chat, Func.example(isPrefix, command, '#'), m)
@@ -35,7 +34,7 @@ exports.run = {
          client.reply(m.chat, Func.texted('bold', `🚩 Prefix ${args[0]} successfully removed.`), m)
       }
    },
-   error: false,
    owner: true,
+   cache: true,
    location: __filename
 }

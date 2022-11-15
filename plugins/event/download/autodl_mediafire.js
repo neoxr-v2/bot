@@ -1,18 +1,24 @@
 const { decode } = require('html-entities')
 exports.run = {
-   name: Func.basename(__filename),
    regex: /^(?:https?:\/\/)?(?:www\.)?(?:mediafire\.com\/)(?:\S+)?$/,
-   async exec(m, {
+   async: async (m, {
       client,
       body,
-      prefixes
-   }) {
+      users,
+      setting
+   }) => {
       try {
          const regex = /^(?:https?:\/\/)?(?:www\.)?(?:mediafire\.com\/)(?:\S+)?$/;
          const extract = body ? Func.generateLink(body) : null
          if (extract) {
             const links = extract.filter(v => v.match(regex))
             if (links.length != 0) {
+               if (users.limit > 0) {
+                  let limit = 1
+                  if (users.limit >= limit) {
+                     users.limit -= limit
+                  } else return client.reply(m.chat, Func.texted('bold', `🚩 Your limit is not enough to use this feature.`), m)
+               }
                client.sendReact(m.chat, '🕒', m.key)
                let old = new Date()
                Func.hitstat('mediafire', m.sender)
@@ -29,7 +35,6 @@ exports.run = {
                   let chSize = Func.sizeLimit(json.data.size, global.max_upload)
                   if (chSize.oversize) return client.reply(m.chat, `💀 File size (${json.data.size}) exceeds the maximum limit, download it by yourself via this link : ${await (await scrap.shorten(json.data.link)).data.url}`, m)
                   client.sendMessageModify(m.chat, text, m, {
-                     title: `© neoxr-bot v${global.version} (Public Bot)`,
                      largeThumb: true,
                      thumbnail: await Func.fetchBuffer('https://telegra.ph/file/fcf56d646aa059af84126.jpg')
                   }).then(async () => {
@@ -42,7 +47,6 @@ exports.run = {
          return client.reply(m.chat, Func.jsonFormat(e), m)
       }
    },
-   error: false,
    limit: true,
-   location: __filename
+   download: true
 }

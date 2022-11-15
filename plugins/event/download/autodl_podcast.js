@@ -1,17 +1,23 @@
 exports.run = {
-   name: Func.basename(__filename),
    regex: /^(?:https?:\/\/)?(?:podcasts\.)?(?:google\.com\/)(?:feed\/)(?:\S+)?$/,
-   async exec(m, {
+   async: async (m, {
       client,
       body,
-      prefixes
-   }) {
+      users,
+      setting
+   }) => {
       try {
          const regex = /^(?:https?:\/\/)?(?:podcasts\.)?(?:google\.com\/)(?:feed\/)(?:\S+)?$/
          const extract = body ? Func.generateLink(body) : null
          if (extract) {
             const links = extract.filter(v => v.match(regex))
             if (links.length != 0) {
+               if (users.limit > 0) {
+                  let limit = 1
+                  if (users.limit >= limit) {
+                     users.limit -= limit
+                  } else return client.reply(m.chat, Func.texted('bold', `🚩 Your limit is not enough to use this feature.`), m)
+               }
                client.sendReact(m.chat, '🕒', m.key)
                Func.hitstat('podcast', m.sender)
                links.map(async link => {
@@ -23,7 +29,6 @@ exports.run = {
                   teks += `	◦  *Duration* : ${json.data.duration}\n\n`
                   teks += global.footer
                   client.sendMessageModify(m.chat, teks, m, {
-                     title: `© neoxr-bot v${global.version} (Public Bot)`,
                      ads: false,
                      largeThumb: true,
                      thumbnail: await Func.fetchBuffer('https://telegra.ph/file/92be727e349c3cf78c98a.jpg')
@@ -39,7 +44,6 @@ exports.run = {
          return client.reply(m.chat, Func.jsonFormat(e), m)
       }
    },
-   error: false,
    limit: true,
-   location: __filename
+   download: true
 }

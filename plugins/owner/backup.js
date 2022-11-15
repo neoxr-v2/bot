@@ -1,11 +1,11 @@
 const { writeFileSync: create, readFileSync: read }= require('fs')
 exports.run = {
-   usage: 'backup',
+   usage: ['backup'],
    category: 'owner',
-   async exec(m, {
+   async: async (m, {
       client,
       command
-   }) {
+   }) => {
       try {
          await props.save()
          create('./database.json', JSON.stringify(global.db, null, 3), 'utf-8')
@@ -15,7 +15,7 @@ exports.run = {
          return client.reply(m.chat, Func.jsonFormat(e), m)
       }
    },
-   error: false,
    owner: true,
+   cache: true,
    location: __filename
 }

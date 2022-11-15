@@ -1,10 +1,10 @@
 exports.run = {
-   usage: 'checkapi',
-   hidden: ['check'],
+   usage: ['checkapi'],
+   hidden: ['api', 'check'],
    category: 'special',
-   async exec(m, {
+   async: async (m, {
       client
-   }) {
+   }) => {
       try {
          let json = await Api.check()
          await client.reply(m.chat, Func.jsonFormat(json), m)
@@ -13,5 +13,6 @@ exports.run = {
       }
    },
    error: false,
+   cache: true,
    location: __filename
 }
